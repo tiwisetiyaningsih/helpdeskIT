@@ -5,10 +5,12 @@
 - **Storage tambahan:** Redis (cache/session), MinIO (object storage untuk lampiran/evidence tiket)
 
 ## Struktur Project
+```
 help-desk-it/
 ├── backend/      # API (Elysia + Bun + Prisma)
 ├── frontend/     # Web app (Next.js)
 └── compose.yml   # Orkestrasi seluruh service (mysql, redis, minio, backend, frontend)
+```
 
 ## Prasyarat
 
