@@ -1,0 +1,162 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+}
+
+model Employee {
+  id Int @id @default(autoincrement())
+
+  nik       String  @unique
+  nama      String
+  jabatan   String
+  unitKerja String
+  jobTitle  String?
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User?
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  employeeId Int      @unique
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  email    String @unique
+  password String
+
+  roleId Int
+  role   Role @relation(fields: [roleId], references: [id])
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reportedTickets Ticket[] @relation("TicketReporter")
+
+  handledTickets Ticket[] @relation("TicketHandler")
+
+  uploadedTicketEvidences TicketEvidence[] @relation("TicketEvidenceUploader")
+
+  refreshTokens RefreshToken[]
+}
+
+enum TicketStatus {
+  MASUK
+  OPEN
+  ON_GOING
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model Ticket {
+  id Int @id @default(autoincrement())
+
+  noPelaporan String @unique
+
+  reporterId Int
+  reporter   User @relation("TicketReporter", fields: [reporterId], references: [id])
+
+  handlerId Int?
+  handler   User? @relation("TicketHandler", fields: [handlerId], references: [id])
+
+  keluhan String @db.Text
+
+  priority     Int
+  waktuKeluhan DateTime @default(now())
+
+  kategoriKeluhan String?
+  sla             Int?
+  eskalasi        String?
+
+  batasResponse      DateTime?
+  selesaiResponse    String?   @db.Text
+  keteranganResponse String?   @db.Text
+
+  isPending   Boolean @default(false)
+  lamaPending Int?
+
+  analisaAwal  String? @db.Text
+  hasilAnalisa String? @db.Text
+
+  mulaiPengerjaan    DateTime?
+  estimasiPengerjaan DateTime?
+  selesaiPengerjaan  DateTime?
+
+  catatan String? @db.Text
+
+  status TicketStatus @default(MASUK)
+
+  waktuPengerjaan Int?
+  keterangan      String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  evidences TicketEvidence[]
+
+  @@index([reporterId])
+  @@index([handlerId])
+  @@index([priority, waktuKeluhan])
+}
+
+model TicketEvidence {
+  id Int @id @default(autoincrement())
+
+  ticketId Int
+
+  fileName     String
+  originalName String
+  objectName   String
+  bucketName   String
+  mimeType     String
+  fileSize     Int
+
+  uploadedById Int?
+  createdAt    DateTime @default(now())
+
+  ticket     Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploadedBy User?  @relation("TicketEvidenceUploader", fields: [uploadedById], references: [id])
+
+  @@index([ticketId])
+  @@index([uploadedById])
+}
+
+model RefreshToken {
+  id              String    @id @default(uuid())
+  token           String    @unique
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt       DateTime
+  revokedAt       DateTime?
+  replacedByToken String?
+  createdAt       DateTime  @default(now())
+
+  @@index([userId])
+}
