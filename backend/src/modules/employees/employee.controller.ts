@@ -1,23 +1,35 @@
 import { employeeService } from "./employee.service";
+import { ensureRole, getRoleErrorStatus } from "../../middleware/permission";
+
+const ADMIN_ROLES = ["ADMIN", "ADMINISTRATOR"];
 
 export const employeeController = {
-  async getAll({ set }: any) {
+  async getAll({ user: authUser, set }: any) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       return await employeeService.getAll();
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil data employee";
+
       console.error("Get employees error:", error);
 
-      set.status = 500;
+      set.status = getRoleErrorStatus(message);
 
       return {
         success: false,
-        message: "Gagal mengambil data employee",
+        message,
       };
     }
   },
 
-  async getById({ params, set }: any) {
+  async getById({ params, user: authUser, set }: any) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       const result = await employeeService.getById(Number(params.id));
 
       if (!result.success) {
@@ -26,19 +38,26 @@ export const employeeController = {
 
       return result;
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil detail employee";
+
       console.error("Get employee error:", error);
 
-      set.status = 500;
+      set.status = getRoleErrorStatus(message);
 
       return {
         success: false,
-        message: "Gagal mengambil detail employee",
+        message,
       };
     }
   },
 
-  async create({ body, set }: any) {
+  async create({ body, user: authUser, set }: any) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       const result = await employeeService.create(body);
 
       if (!result.success) {
@@ -49,19 +68,27 @@ export const employeeController = {
 
       return result;
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menambahkan employee";
+
       console.error("Create employee error:", error);
 
-      set.status = 500;
+      const roleErrorStatus = getRoleErrorStatus(message);
+      set.status = roleErrorStatus !== 500 ? roleErrorStatus : 400;
 
       return {
         success: false,
-        message: "Gagal menambahkan employee",
+        message,
       };
     }
   },
 
-  async update({ params, body, set }: any) {
+  async update({ params, body, user: authUser, set }: any) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       const result = await employeeService.update(
         Number(params.id),
         body
@@ -73,19 +100,27 @@ export const employeeController = {
 
       return result;
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal memperbarui employee";
+
       console.error("Update employee error:", error);
 
-      set.status = 500;
+      const roleErrorStatus = getRoleErrorStatus(message);
+      set.status = roleErrorStatus !== 500 ? roleErrorStatus : 400;
 
       return {
         success: false,
-        message: "Gagal memperbarui employee",
+        message,
       };
     }
   },
 
-  async delete({ params, set }: any) {
+  async delete({ params, user: authUser, set }: any) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       const result = await employeeService.delete(Number(params.id));
 
       if (!result.success) {
@@ -94,13 +129,19 @@ export const employeeController = {
 
       return result;
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menghapus employee";
+
       console.error("Delete employee error:", error);
 
-      set.status = 500;
+      const roleErrorStatus = getRoleErrorStatus(message);
+      set.status = roleErrorStatus !== 500 ? roleErrorStatus : 400;
 
       return {
         success: false,
-        message: "Gagal menghapus employee",
+        message,
       };
     }
   },
