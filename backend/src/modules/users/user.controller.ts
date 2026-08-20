@@ -1,4 +1,5 @@
 import { userService } from "./user.service";
+import { ensureRole, getRoleErrorStatus } from "../../middleware/permission";
 
 type UserBody = {
   employeeId?: number | string;
@@ -8,9 +9,14 @@ type UserBody = {
   isActive?: boolean;
 };
 
+
+const ADMIN_ROLES = ["ADMIN", "ADMINISTRATOR"];
+
 export const userController = {
-  async getAll({ set }: any) {
+  async getAll({ user: authUser, set }: any) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       const users = await userService.getAll();
 
       return {
@@ -19,19 +25,26 @@ export const userController = {
         data: users,
       };
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil data user.";
+
       console.error(error);
 
-      set.status = 500;
+      set.status = getRoleErrorStatus(message);
 
       return {
         success: false,
-        message: "Gagal mengambil data user.",
+        message,
       };
     }
   },
 
-  async getById({ params, set }: any) {
+  async getById({ params, user: authUser, set }: any) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       const id = Number(params.id);
 
       if (!Number.isInteger(id) || id <= 0) {
@@ -60,19 +73,26 @@ export const userController = {
         data: user,
       };
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil detail user.";
+
       console.error(error);
 
-      set.status = 500;
+      set.status = getRoleErrorStatus(message);
 
       return {
         success: false,
-        message: "Gagal mengambil detail user.",
+        message,
       };
     }
   },
 
-  async getFormOptions({ set }: any) {
+  async getFormOptions({ user: authUser, set }: any) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       const data = await userService.getFormOptions();
 
       return {
@@ -80,19 +100,34 @@ export const userController = {
         data,
       };
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil pilihan employee dan role.";
+
       console.error(error);
 
-      set.status = 500;
+      set.status = getRoleErrorStatus(message);
 
       return {
         success: false,
-        message: "Gagal mengambil pilihan employee dan role.",
+        message,
       };
     }
   },
 
-  async create({ body, set }: { body: UserBody; set: any }) {
+  async create({
+    body,
+    user: authUser,
+    set,
+  }: {
+    body: UserBody;
+    user: any;
+    set: any;
+  }) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       const employeeId = Number(body.employeeId);
       const roleId = Number(body.roleId);
       const email = body.email?.trim() ?? "";
@@ -159,16 +194,19 @@ export const userController = {
         data: user,
       };
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menambahkan user.";
+
       console.error(error);
 
-      set.status = 400;
+      const roleErrorStatus = getRoleErrorStatus(message);
+      set.status = roleErrorStatus !== 500 ? roleErrorStatus : 400;
 
       return {
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Gagal menambahkan user.",
+        message,
       };
     }
   },
@@ -176,13 +214,17 @@ export const userController = {
   async update({
     params,
     body,
+    user: authUser,
     set,
   }: {
     params: { id: string };
     body: UserBody;
+    user: any;
     set: any;
   }) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       const id = Number(params.id);
 
       if (!Number.isInteger(id) || id <= 0) {
@@ -253,22 +295,27 @@ export const userController = {
         data: user,
       };
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal memperbarui user.";
+
       console.error(error);
 
-      set.status = 400;
+      const roleErrorStatus = getRoleErrorStatus(message);
+      set.status = roleErrorStatus !== 500 ? roleErrorStatus : 400;
 
       return {
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Gagal memperbarui user.",
+        message,
       };
     }
   },
 
-  async delete({ params, set }: any) {
+  async delete({ params, user: authUser, set }: any) {
     try {
+      await ensureRole(authUser, ADMIN_ROLES);
+
       const id = Number(params.id);
 
       if (!Number.isInteger(id) || id <= 0) {
@@ -287,16 +334,19 @@ export const userController = {
         message: "User berhasil dihapus.",
       };
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menghapus user.";
+
       console.error(error);
 
-      set.status = 400;
+      const roleErrorStatus = getRoleErrorStatus(message);
+      set.status = roleErrorStatus !== 500 ? roleErrorStatus : 400;
 
       return {
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Gagal menghapus user.",
+        message,
       };
     }
   },
