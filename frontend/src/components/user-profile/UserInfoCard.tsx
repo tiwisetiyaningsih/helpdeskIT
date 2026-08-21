@@ -156,7 +156,7 @@ export default function UserInfoCard() {
             </p>
           </div>
 
-          {/* <button
+          <button
             type="button"
             onClick={() => {
               setSuccessMessage("");
@@ -166,7 +166,7 @@ export default function UserInfoCard() {
           >
             <PencilIcon className="h-5 w-5 fill-current" />
             Edit
-          </button> */}
+          </button>
         </div>
 
         {successMessage && (
@@ -184,11 +184,10 @@ export default function UserInfoCard() {
 
               {item.label === "Status Akun" ? (
                 <span
-                  className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                    user?.isActive
-                      ? "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400"
-                      : "bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400"
-                  }`}
+                  className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${user?.isActive
+                    ? "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400"
+                    : "bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400"
+                    }`}
                 >
                   {item.value}
                 </span>

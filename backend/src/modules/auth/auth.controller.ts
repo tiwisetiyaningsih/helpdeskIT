@@ -1,13 +1,17 @@
 import { authService } from "./auth.service";
-import { registerSchema } from "./auth.schema";
+import {
+  registerSchema,
+  loginSchema,
+  updateProfileSchema,
+} from "./auth.schema";
 
 const REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 hari, dalam detik
 
 function setRefreshCookie(cookie: any, value: string) {
   cookie.refreshToken.set({
     value,
-    httpOnly: true, // JS di browser tidak bisa baca cookie ini (proteksi dari XSS)
-    secure: process.env.NODE_ENV === "production", // di localhost http, biarkan false
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     path: "/",
     maxAge: REFRESH_COOKIE_MAX_AGE,
@@ -56,31 +60,55 @@ export const authController = {
     }
   },
 
-  // BERUBAH: sekarang juga menerbitkan refresh token dan menaruhnya di cookie httpOnly
+  // BERUBAH: sekarang divalidasi pakai loginSchema + dibungkus try/catch,
+  // supaya body aneh (kosong/salah tipe) tidak bikin server crash 500 mentah.
   async login({ body, jwt, cookie, set }: any) {
-    const result = await authService.login(body);
+    const validation = loginSchema.safeParse(body);
 
-    if (!result.success) {
-      set.status = result.status ?? 400;
-      return result;
+    if (!validation.success) {
+      set.status = 400;
+
+      return {
+        success: false,
+        message:
+          validation.error.issues[0]?.message ?? "Data login tidak valid",
+      };
     }
 
-    const user = result.user!;
+    try {
+      const result = await authService.login(validation.data);
 
-    const token = await jwt.sign({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    });
+      if (!result.success) {
+        set.status = result.status ?? 400;
+        return result;
+      }
 
-    const refreshToken = await authService.issueRefreshToken(user.id);
-    setRefreshCookie(cookie, refreshToken);
+      const user = result.user!;
 
-    return {
-      success: true,
-      token,
-      user,
-    };
+      const token = await jwt.sign({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
+      const refreshToken = await authService.issueRefreshToken(user.id);
+      setRefreshCookie(cookie, refreshToken);
+
+      return {
+        success: true,
+        token,
+        user,
+      };
+    } catch (error) {
+      console.error("POST /auth/login ERROR:", error);
+
+      set.status = 500;
+
+      return {
+        success: false,
+        message: "Gagal login",
+      };
+    }
   },
 
   async me({ user, set }: any) {
@@ -102,7 +130,55 @@ export const authController = {
     return result;
   },
 
-  // BARU: tukar refresh token (dari cookie) dengan access token baru
+  // BARU: update profil milik sendiri (H-05 — endpoint ini sebelumnya
+  // dipanggil frontend tapi tidak pernah ada di backend).
+  async updateProfile({ user, body, set }: any) {
+    if (!user?.id) {
+      set.status = 401;
+
+      return {
+        success: false,
+        message: "Data user dari token tidak ditemukan",
+      };
+    }
+
+    const validation = updateProfileSchema.safeParse(body);
+
+    if (!validation.success) {
+      set.status = 400;
+
+      return {
+        success: false,
+        message:
+          validation.error.issues[0]?.message ?? "Data profil tidak valid",
+      };
+    }
+
+    try {
+      const result = await authService.updateProfile(Number(user.id), {
+        nama: validation.data.nama,
+        email: validation.data.email,
+        jobTitle: validation.data.jobTitle ?? null,
+        unitKerja: validation.data.unitKerja,
+      });
+
+      if (!result.success) {
+        set.status = result.status ?? 400;
+      }
+
+      return result;
+    } catch (error) {
+      console.error("PUT /auth/profile ERROR:", error);
+
+      set.status = 500;
+
+      return {
+        success: false,
+        message: "Gagal memperbarui profil",
+      };
+    }
+  },
+
   async refresh({ cookie, jwt, set }: any) {
     const rawToken = cookie.refreshToken?.value;
 
@@ -123,7 +199,6 @@ export const authController = {
     };
   },
 
-  // BERUBAH: sekarang mencabut refresh token dari DB & cookie, bukan cuma respons kosong
   async logout({ cookie }: any) {
     await authService.revokeRefreshTokenByRaw(cookie.refreshToken?.value);
     cookie.refreshToken?.remove();

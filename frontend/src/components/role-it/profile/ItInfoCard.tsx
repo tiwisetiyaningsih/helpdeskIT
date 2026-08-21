@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import PencilIcon from "@/icons/pencil.svg";
+import EditProfileModal from "./EditProfileModal";
 import type { ProfileIt } from "./ItProfile";
 
 type UserInfoCardProps = {
@@ -85,6 +86,18 @@ export default function UserInfoCard({
               sistem.
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSuccessMessage("");
+              setOpenEdit(true);
+            }}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-theme-sm font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+          >
+            <PencilIcon className="h-5 w-5 fill-current" />
+            Edit Profil
+          </button>
         </div>
 
         {successMessage && (
@@ -102,11 +115,10 @@ export default function UserInfoCard({
 
               {item.label === "Status Akun" ? (
                 <span
-                  className={`inline-flex rounded-full px-2.5 py-1 text-theme-xs font-medium ${
-                    user.isActive
+                  className={`inline-flex rounded-full px-2.5 py-1 text-theme-xs font-medium ${user.isActive
                       ? "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400"
                       : "bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400"
-                  }`}
+                    }`}
                 >
                   {item.value}
                 </span>
@@ -123,6 +135,17 @@ export default function UserInfoCard({
           ))}
         </div>
       </div>
+
+      <EditProfileModal
+        isOpen={openEdit}
+        user={user}
+        onClose={() => setOpenEdit(false)}
+        onSuccess={(updatedUser, message) => {
+          onUserUpdated(updatedUser);
+          setSuccessMessage(message);
+          setOpenEdit(false);
+        }}
+      />
     </>
   );
 }

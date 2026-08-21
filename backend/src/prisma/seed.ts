@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
@@ -60,8 +61,8 @@ async function main() {
   // =========================
   // HASH PASSWORD
   // =========================
-  const hashedPassword = await bcrypt.hash("admin123", 10);
-
+  const generatedAdminPassword = crypto.randomBytes(9).toString("base64url");
+  const hashedPassword = await bcrypt.hash(generatedAdminPassword, 10);
   // =========================
   // USER ADMIN
   // =========================
@@ -80,6 +81,10 @@ async function main() {
   });
 
   console.log("✅ User Admin berhasil dibuat");
+  console.log(
+    "🔑 Password Admin (SIMPAN, tidak akan ditampilkan lagi):",
+    generatedAdminPassword
+  );
 
   console.log("🎉 Seeding selesai");
 }

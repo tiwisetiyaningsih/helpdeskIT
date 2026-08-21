@@ -256,17 +256,22 @@ export const userController = {
         };
       }
 
-      if (
-        body.password !== undefined &&
-        body.password !== "" &&
-        body.password.length < 6
-      ) {
-        set.status = 400;
+      if (body.password !== undefined && body.password !== "") {
+        const password = String(body.password);
+        const hasMinLength = password.length >= 12;
+        const hasLowercase = /[a-z]/.test(password);
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
 
-        return {
-          success: false,
-          message: "Password minimal 6 karakter.",
-        };
+        if (!hasMinLength || !hasLowercase || !hasUppercase || !hasNumber) {
+          set.status = 400;
+
+          return {
+            success: false,
+            message:
+              "Password minimal 12 karakter dan harus mengandung huruf besar, huruf kecil, dan angka.",
+          };
+        }
       }
 
       const user = await userService.update(id, {

@@ -34,6 +34,11 @@ export const authRoute = new Elysia({
     authController.me(context)
   )
 
+
+  .put("/profile", (context) =>
+    authController.updateProfile(context)
+  )
+
   .post("/logout", (context) =>
     authController.logout(context)
   );

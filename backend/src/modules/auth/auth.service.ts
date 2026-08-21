@@ -151,12 +151,12 @@ export const authService = {
           isActive: user.isActive,
           employee: user.employee
             ? {
-                nik: user.employee.nik,
-                nama: user.employee.nama,
-                jabatan: user.employee.jabatan,
-                unitKerja: user.employee.unitKerja,
-                jobTitle: user.employee.jobTitle,
-              }
+              nik: user.employee.nik,
+              nama: user.employee.nama,
+              jabatan: user.employee.jabatan,
+              unitKerja: user.employee.unitKerja,
+              jobTitle: user.employee.jobTitle,
+            }
             : null,
         },
       };
@@ -261,5 +261,56 @@ export const authService = {
     if (stored && !stored.revokedAt) {
       await authRepository.revokeRefreshToken(stored.id);
     }
+  },
+
+  async updateProfile(
+    userId: number,
+    input: { nama: string; email: string; jobTitle: string | null; unitKerja: string }
+  ) {
+    const existingWithEmail = await authRepository.findByEmail(input.email);
+
+    if (existingWithEmail && existingWithEmail.id !== userId) {
+      return {
+        success: false as const,
+        status: 409,
+        message: "Email sudah digunakan oleh akun lain.",
+      };
+    }
+
+    const updated = await authRepository.updateProfile(userId, {
+      email: input.email,
+      nama: input.nama,
+      jobTitle: input.jobTitle,
+      unitKerja: input.unitKerja,
+    });
+
+    if (!updated) {
+      return {
+        success: false as const,
+        status: 404,
+        message: "Pengguna tidak ditemukan.",
+      };
+    }
+
+    return {
+      success: true as const,
+      message: "Profil berhasil diperbarui.",
+      user: {
+        id: updated.id,
+        email: updated.email,
+        nama: updated.employee?.nama ?? "Pengguna",
+        role: updated.role?.name ?? "User",
+        isActive: updated.isActive,
+        employee: updated.employee
+          ? {
+            nik: updated.employee.nik,
+            nama: updated.employee.nama,
+            jabatan: updated.employee.jabatan,
+            unitKerja: updated.employee.unitKerja,
+            jobTitle: updated.employee.jobTitle,
+          }
+          : null,
+      },
+    };
   },
 };
