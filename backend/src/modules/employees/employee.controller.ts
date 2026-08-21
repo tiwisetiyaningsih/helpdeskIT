@@ -1,13 +1,10 @@
 import { employeeService } from "./employee.service";
-import { ensureRole, getRoleErrorStatus } from "../../middleware/permission";
+import { getRoleErrorStatus } from "../../middleware/permission";
 
-const ADMIN_ROLES = ["ADMIN", "ADMINISTRATOR"];
 
 export const employeeController = {
   async getAll({ user: authUser, set }: any) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       return await employeeService.getAll();
     } catch (error) {
       const message =
@@ -28,8 +25,6 @@ export const employeeController = {
 
   async getById({ params, user: authUser, set }: any) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       const result = await employeeService.getById(Number(params.id));
 
       if (!result.success) {
@@ -56,8 +51,6 @@ export const employeeController = {
 
   async create({ body, user: authUser, set }: any) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       const result = await employeeService.create(body);
 
       if (!result.success) {
@@ -87,8 +80,6 @@ export const employeeController = {
 
   async update({ params, body, user: authUser, set }: any) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       const result = await employeeService.update(
         Number(params.id),
         body
@@ -119,8 +110,6 @@ export const employeeController = {
 
   async delete({ params, user: authUser, set }: any) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       const result = await employeeService.delete(Number(params.id));
 
       if (!result.success) {

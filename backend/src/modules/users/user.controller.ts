@@ -1,5 +1,6 @@
 import { userService } from "./user.service";
-import { ensureRole, getRoleErrorStatus } from "../../middleware/permission";
+import { getRoleErrorStatus } from "../../middleware/permission";
+
 
 type UserBody = {
   employeeId?: number | string;
@@ -9,14 +10,9 @@ type UserBody = {
   isActive?: boolean;
 };
 
-
-const ADMIN_ROLES = ["ADMIN", "ADMINISTRATOR"];
-
 export const userController = {
   async getAll({ user: authUser, set }: any) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       const users = await userService.getAll();
 
       return {
@@ -43,8 +39,6 @@ export const userController = {
 
   async getById({ params, user: authUser, set }: any) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       const id = Number(params.id);
 
       if (!Number.isInteger(id) || id <= 0) {
@@ -91,8 +85,6 @@ export const userController = {
 
   async getFormOptions({ user: authUser, set }: any) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       const data = await userService.getFormOptions();
 
       return {
@@ -126,8 +118,6 @@ export const userController = {
     set: any;
   }) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       const employeeId = Number(body.employeeId);
       const roleId = Number(body.roleId);
       const email = body.email?.trim() ?? "";
@@ -223,8 +213,6 @@ export const userController = {
     set: any;
   }) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       const id = Number(params.id);
 
       if (!Number.isInteger(id) || id <= 0) {
@@ -314,8 +302,6 @@ export const userController = {
 
   async delete({ params, user: authUser, set }: any) {
     try {
-      await ensureRole(authUser, ADMIN_ROLES);
-
       const id = Number(params.id);
 
       if (!Number.isInteger(id) || id <= 0) {

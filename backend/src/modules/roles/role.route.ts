@@ -1,12 +1,15 @@
 import { Elysia, t } from "elysia";
 
 import { authMiddleware } from "../../middleware/auth.middleware";
+import { ROLE_GROUPS, requireRole } from "../../middleware/permission";
 import { roleController } from "./role.controller";
 
 export const roleRoute = new Elysia({
   prefix: "/roles",
 })
   .use(authMiddleware)
+
+  .use(requireRole(ROLE_GROUPS.ADMIN))
 
   .get("/", (context) =>
     roleController.getAll(context)

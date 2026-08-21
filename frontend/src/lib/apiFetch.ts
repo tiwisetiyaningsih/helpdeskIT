@@ -26,17 +26,12 @@ function forceLogout(message: string) {
 
   sessionStorage.setItem("sessionExpiredMessage", message);
 
-  // Hindari redirect loop kalau memang sudah di halaman signin.
   if (!window.location.pathname.startsWith("/signin")) {
     window.location.href = "/signin";
   }
 }
 
-/**
- * Menukar refresh token (dikirim otomatis lewat cookie httpOnly)
- * dengan access token baru. Kalau dipanggil berkali-kali secara
- * bersamaan, cukup satu request refresh yang jalan (di-share).
- */
+
 async function refreshAccessToken(): Promise<string | null> {
   if (refreshPromise) {
     return refreshPromise;
@@ -51,6 +46,11 @@ async function refreshAccessToken(): Promise<string | null> {
           Accept: "application/json",
         },
       });
+
+      if (response.status === 429) {
+        // Rate limited, BUKAN berarti sesi invalid — jangan logout paksa.
+        throw new Error("RATE_LIMITED");
+      }
 
       if (!response.ok) {
         return null;
@@ -70,6 +70,10 @@ async function refreshAccessToken(): Promise<string | null> {
 
       return data.token as string;
     } catch (error) {
+      if (error instanceof Error && error.message === "RATE_LIMITED") {
+        throw error;
+      }
+
       console.error("REFRESH TOKEN ERROR:", error);
       return null;
     } finally {
@@ -80,16 +84,7 @@ async function refreshAccessToken(): Promise<string | null> {
   return refreshPromise;
 }
 
-/**
- * Pengganti fetch() biasa untuk semua request yang butuh login.
- * - Otomatis menyertakan access token di header Authorization.
- * - Kalau access token expired (401), otomatis coba refresh
- *   memakai refresh token (cookie httpOnly, umur ~7 hari) dan
- *   mengulang request tersebut sekali dengan token baru.
- * - Kalau refresh token juga sudah habis / tidak valid, baru
- *   dianggap sesi benar-benar berakhir: hapus data login lokal
- *   dan redirect ke halaman login dengan pesan yang jelas.
- */
+
 export async function apiFetch(
   path: string,
   options: RequestInit = {}
@@ -112,7 +107,19 @@ export async function apiFetch(
   let response = await attempt(token);
 
   if (response.status === 401) {
-    const newToken = await refreshAccessToken();
+    let newToken: string | null = null;
+
+    try {
+      newToken = await refreshAccessToken();
+    } catch (error) {
+      if (error instanceof Error && error.message === "RATE_LIMITED") {
+        throw new Error(
+          "Terlalu banyak permintaan. Coba lagi dalam beberapa saat."
+        );
+      }
+
+      throw error;
+    }
 
     if (!newToken) {
       forceLogout("Sesi Anda telah berakhir. Silakan login kembali.");
@@ -137,11 +144,7 @@ export async function apiFetch(
   return response;
 }
 
-/**
- * Sama seperti apiFetch, tapi langsung mem-parsing body JSON dan
- * melempar Error kalau backend mengembalikan success: false.
- * Cocok dipakai menggantikan pola request<T>() yang lama.
- */
+
 export async function apiFetchJson<T = any>(
   path: string,
   options: RequestInit = {}

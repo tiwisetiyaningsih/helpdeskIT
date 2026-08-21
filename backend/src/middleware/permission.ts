@@ -1,4 +1,14 @@
 import { prisma } from "../config/prisma";
+import { Elysia } from "elysia";
+
+
+export const ROLE_GROUPS: Record<string, string[]> = {
+  ADMIN: ["ADMIN", "ADMINISTRATOR"],
+  IT_HELPDESK: ["IT HELPDESK"],
+  ADMIN_OR_IT_HELPDESK: ["ADMIN", "IT HELPDESK"],
+};
+
+export const ROLE_NAME_IT_HELPDESK = "IT Helpdesk";
 
 type AuthenticatedUser = {
   id?: number | string;
@@ -69,3 +79,35 @@ export function getRoleErrorStatus(message: string) {
 
   return 500;
 }
+
+export const requireRole = (allowedRoles: string[]) =>
+  new Elysia({
+    name: `requireRole(${allowedRoles.join(",")})`,
+  })
+    .derive({ as: "scoped" }, async (context: any) => {
+      const { user } = context;
+
+      try {
+        const currentUser = await ensureRole(user, allowedRoles);
+        return { roleUser: currentUser, roleErrorMessage: null as string | null };
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Anda tidak memiliki akses untuk aksi ini.";
+
+        return { roleUser: null, roleErrorMessage: message };
+      }
+    })
+    .onBeforeHandle({ as: "scoped" }, (context: any) => {
+      const { roleErrorMessage, set } = context;
+
+      if (roleErrorMessage) {
+        set.status = getRoleErrorStatus(roleErrorMessage);
+
+        return {
+          success: false,
+          message: roleErrorMessage,
+        };
+      }
+    });

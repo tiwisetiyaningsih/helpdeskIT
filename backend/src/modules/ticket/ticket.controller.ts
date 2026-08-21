@@ -1,6 +1,7 @@
 import { prisma } from "../../config/prisma";
 import { ticketService } from "./ticket.service";
 import { TicketStatus } from "@prisma/client";
+import { ROLE_GROUPS, ROLE_NAME_IT_HELPDESK } from "../../middleware/permission";
 
 type AuthenticatedUser = {
   id?: number | string;
@@ -253,13 +254,10 @@ export const ticketController = {
         roleName
       );
 
-      const allowedRoles = [
-        "ADMIN",
-        "IT HELPDESK",
-      ];
-
       if (
-        !allowedRoles.includes(roleName)
+        !ROLE_GROUPS.ADMIN_OR_IT_HELPDESK.includes(
+          roleName
+        )
       ) {
         set.status = 403;
 
@@ -368,10 +366,7 @@ export const ticketController = {
         .toUpperCase();
 
       if (
-        ![
-          "ADMIN",
-          "ADMINISTRATOR",
-        ].includes(roleName)
+        !ROLE_GROUPS.ADMIN.includes(roleName)
       ) {
         set.status = 403;
 
@@ -643,7 +638,7 @@ export const ticketController = {
         .trim()
         .toUpperCase();
 
-      if (roleName !== "IT HELPDESK") {
+      if (!ROLE_GROUPS.IT_HELPDESK.includes(roleName)) {
         set.status = 403;
 
         return {
@@ -754,11 +749,9 @@ export const ticketController = {
         .toUpperCase();
 
       if (
-        ![
-          "ADMIN",
-          "IT HELPDESK",
-          "IT HELP DESK",
-        ].includes(roleName)
+        !ROLE_GROUPS.ADMIN_OR_IT_HELPDESK.includes(
+          roleName
+        )
       ) {
         set.status = 403;
 
@@ -868,19 +861,15 @@ export const ticketController = {
           .trim()
           .toUpperCase();
 
-      const isItHelpdesk = [
-        "IT HELPDESK",
-        "IT HELP DESK",
-      ].includes(roleName);
+      const isAdmin =
+        ROLE_GROUPS.ADMIN.includes(roleName);
 
-      const isAdmin = [
-        "ADMIN",
-        "ADMINISTRATOR",
-      ].includes(roleName);
-
-      if (!isItHelpdesk && !isAdmin) {
+      if (
+        !ROLE_GROUPS.ADMIN_OR_IT_HELPDESK.includes(
+          roleName
+        )
+      ) {
         set.status = 403;
-
         return {
           success: false,
           message:
@@ -1191,10 +1180,7 @@ export const ticketController = {
       if (
         !currentUser ||
         !currentUser.isActive ||
-        ![
-          "ADMIN",
-          "ADMINISTRATOR",
-        ].includes(roleName)
+        !ROLE_GROUPS.ADMIN.includes(roleName)
       ) {
         set.status = 403;
 
@@ -1211,13 +1197,7 @@ export const ticketController = {
             isActive: true,
 
             role: {
-              name: {
-                in: [
-                  "IT HelpDesk",
-                  "IT HELPDESK",
-                  "IT Help Desk",
-                ],
-              },
+              name: ROLE_NAME_IT_HELPDESK,
             },
           },
 

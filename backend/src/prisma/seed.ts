@@ -19,10 +19,10 @@ async function main() {
   });
 
   const consultantRole = await prisma.role.upsert({
-    where: { name: "IT Consultant" },
+    where: { name: "IT Helpdesk" },
     update: {},
     create: {
-      name: "IT Consultant",
+      name: "IT Helpdesk",
       description: "Petugas Helpdesk",
     },
   });
