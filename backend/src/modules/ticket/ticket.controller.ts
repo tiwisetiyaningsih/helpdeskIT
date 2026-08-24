@@ -63,11 +63,11 @@ function optionalString(value: unknown) {
     return undefined;
   }
 
-  const result =
-    String(value).trim();
+  const result = String(value).trim();
 
   return result || null;
 }
+
 
 function optionalDate(value: unknown) {
   if (
@@ -295,11 +295,11 @@ export const ticketController = {
 
   async assignTicketByAdmin(context: any) {
     const {
-      user,
-      params,
-      body,
-      set,
-    } = context;
+  params,
+  user,
+  body,
+  set,
+} = context;
 
     try {
       const adminId =
@@ -1309,8 +1309,9 @@ export const ticketController = {
     context: any
   ) {
     const {
-      user,
       params,
+      user,
+      currentUser,
       set,
     } = context;
 
@@ -1337,7 +1338,8 @@ export const ticketController = {
       const file =
         await ticketService.getEvidenceFile(
           evidenceId,
-          reporterId
+          reporterId,
+          currentUser?.role?.code ?? null
         );
 
       set.headers[

@@ -2,7 +2,10 @@ import crypto from "crypto";
 import path from "path";
 
 import { TicketStatus } from "@prisma/client";
-import { ROLE_GROUPS } from "../../middleware/permission";
+import {
+  ROLE_ACCESS,
+  ROLE_CODES,
+} from "../../middleware/permission";
 import { prisma } from "../../config/prisma";
 import {
   ensureMinioBucket,
@@ -313,9 +316,8 @@ export const ticketService = {
         id: input.handlerId,
         isActive: true,
         role: {
-          name: {
-            in: ROLE_GROUPS.IT_HELPDESK,
-            mode: "insensitive",
+          is: {
+            code: ROLE_CODES.IT_HELPDESK,
           },
         },
       },
@@ -807,39 +809,14 @@ export const ticketService = {
 
   async getEvidenceFile(
     evidenceId: number,
-    userId: number
+    userId: number,
+    roleCode: string | null
   ) {
-    const currentUser =
-      await prisma.user.findUnique({
-        where: {
-          id: userId,
-        },
-
-        select: {
-          id: true,
-
-          role: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      });
-
-    if (!currentUser) {
-      throw new Error(
-        "Pengguna tidak ditemukan."
-      );
-    }
-
-    const roleName = String(
-      currentUser.role?.name || ""
-    )
-      .trim()
-      .toUpperCase();
-
     const isPrivilegedUser =
-      ROLE_GROUPS.ADMIN_OR_IT_HELPDESK.includes(roleName);
+      roleCode !== null &&
+      (
+        ROLE_ACCESS.ADMIN_OR_IT_HELPDESK as readonly string[]
+      ).includes(roleCode);
 
     const evidence =
       await prisma.ticketEvidence.findFirst({
