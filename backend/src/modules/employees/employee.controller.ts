@@ -134,4 +134,15 @@ export const employeeController = {
       };
     }
   },
+
+  
+  async generateRegistrationToken({ params, set }: any) {
+    const result = await employeeService.generateRegistrationToken(Number(params.id));
+
+    if (!result.success) {
+      set.status = result.status;
+    }
+
+    return result;
+  },
 };

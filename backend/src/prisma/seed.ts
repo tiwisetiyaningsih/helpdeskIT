@@ -58,6 +58,16 @@ async function main() {
 
   console.log("✅ Employee berhasil dibuat");
 
+  const rawToken = crypto.randomBytes(24).toString("hex");
+  await prisma.employee.update({
+    where: { id: employee.id },
+    data: {
+      registrationTokenHash: crypto.createHash("sha256").update(rawToken).digest("hex"),
+      registrationTokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    },
+  });
+  console.log(`Registration token untuk ${employee.nik}: ${rawToken}`);
+
   // =========================
   // HASH PASSWORD
   // =========================

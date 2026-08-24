@@ -2,8 +2,6 @@ import { prisma } from "../../config/prisma";
 import { ticketService } from "./ticket.service";
 import { TicketStatus } from "@prisma/client";
 import {
-  ROLE_ACCESS,
-  ROLE_CODES,
   ROLE_GROUPS,
   ROLE_NAME_IT_HELPDESK,
 } from "../../middleware/permission";

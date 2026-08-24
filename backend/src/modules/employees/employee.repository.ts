@@ -89,4 +89,17 @@ export const employeeRepository = {
       },
     });
   },
+
+  async setRegistrationToken(
+    employeeId: number,
+    data: { tokenHash: string; expiresAt: Date }
+  ) {
+    return prisma.employee.update({
+      where: { id: employeeId },
+      data: {
+        registrationTokenHash: data.tokenHash,
+        registrationTokenExpiresAt: data.expiresAt,
+      },
+    });
+  },
 };

@@ -3,8 +3,7 @@ import path from "path";
 
 import { TicketStatus } from "@prisma/client";
 import {
-  ROLE_ACCESS,
-  ROLE_CODES,
+  ROLE_GROUPS,
 } from "../../middleware/permission";
 import { prisma } from "../../config/prisma";
 import {
@@ -316,8 +315,8 @@ export const ticketService = {
         id: input.handlerId,
         isActive: true,
         role: {
-          is: {
-            code: ROLE_CODES.IT_HELPDESK,
+          name: {
+            in: ROLE_GROUPS.IT_HELPDESK,
           },
         },
       },
@@ -815,7 +814,7 @@ export const ticketService = {
     const isPrivilegedUser =
       roleCode !== null &&
       (
-        ROLE_ACCESS.ADMIN_OR_IT_HELPDESK as readonly string[]
+        ROLE_GROUPS.ADMIN_OR_IT_HELPDESK
       ).includes(roleCode);
 
     const evidence =

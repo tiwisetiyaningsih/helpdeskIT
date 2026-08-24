@@ -20,28 +20,31 @@ export const authService = {
 
     const employee = await authRepository.findEmployeeByNik(nik);
 
-    if (!employee) {
-      return {
-        success: false,
-        status: 404,
-        message: "NIK tidak ditemukan dalam data karyawan",
-      };
+    const REGISTRATION_ERROR = {
+      success: false as const,
+      status: 400,
+      message: "NIK atau kode undangan tidak valid.",
+    };
+
+    if (!employee || !employee.isActive || employee.user) {
+      return REGISTRATION_ERROR;
     }
 
-    if (!employee.isActive) {
-      return {
-        success: false,
-        status: 403,
-        message: "Data karyawan tidak aktif",
-      };
+    if (!employee.registrationTokenHash || !employee.registrationTokenExpiresAt) {
+      return REGISTRATION_ERROR;
     }
 
-    if (employee.user) {
-      return {
-        success: false,
-        status: 409,
-        message: "Karyawan dengan NIK tersebut sudah memiliki akun",
-      };
+    if (employee.registrationTokenExpiresAt < new Date()) {
+      return REGISTRATION_ERROR;
+    }
+
+    const providedTokenHash = crypto
+      .createHash("sha256")
+      .update(body.registrationToken)
+      .digest("hex");
+
+    if (providedTokenHash !== employee.registrationTokenHash) {
+      return REGISTRATION_ERROR;
     }
 
     const existingUser = await authRepository.findByEmail(email);
@@ -66,12 +69,14 @@ export const authService = {
 
     const hashedPassword = await bcrypt.hash(body.password, 10);
 
-    const user = await authRepository.createUser({
+        const user = await authRepository.createUser({
       employeeId: employee.id,
       email,
       password: hashedPassword,
       roleId: employeeRole.id,
     });
+
+    await authRepository.clearEmployeeRegistrationToken(employee.id);
 
     return {
       success: true,

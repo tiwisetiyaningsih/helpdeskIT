@@ -35,6 +35,9 @@ model Employee {
   jobTitle  String?
   isActive  Boolean @default(true)
 
+  registrationTokenHash      String?   @unique
+  registrationTokenExpiresAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -4,6 +4,8 @@ import {
   updateEmployeeSchema,
 } from "./employee.schema";
 
+import crypto from "crypto";
+
 export const employeeService = {
   async getAll() {
     const employees = await employeeRepository.findAll();
@@ -142,4 +144,27 @@ export const employeeService = {
       message: "Employee berhasil dihapus",
     };
   },
+
+  async generateRegistrationToken(employeeId: number) {
+    const employee = await employeeRepository.findById(employeeId);
+
+    if (!employee) {
+      return { success: false as const, status: 404, message: "Employee tidak ditemukan." };
+    }
+
+    if (employee.user) {
+      return { success: false as const, status: 409, message: "Employee sudah memiliki akun." };
+    }
+
+    const rawToken = crypto.randomBytes(24).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+    await employeeRepository.setRegistrationToken(employeeId, {
+      tokenHash,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 hari
+    });
+
+    return { success: true as const, registrationToken: rawToken };
+  },
 };
+

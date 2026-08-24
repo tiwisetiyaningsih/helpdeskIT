@@ -19,6 +19,11 @@ export const registerSchema = z
       .min(1, "NIK wajib diisi")
       .trim(),
 
+    registrationToken: z
+      .string()
+      .min(1, "Kode undangan wajib diisi")
+      .trim(),
+
     email: z
       .string()
       .email("Email tidak valid")

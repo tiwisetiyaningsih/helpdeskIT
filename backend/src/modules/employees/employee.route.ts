@@ -12,4 +12,7 @@ export const employeeRoute = new Elysia({
   .get("/:id", (context) => employeeController.getById(context))
   .post("/", (context) => employeeController.create(context))
   .put("/:id", (context) => employeeController.update(context))
-  .delete("/:id", (context) => employeeController.delete(context));
+  .delete("/:id", (context) => employeeController.delete(context))
+  .post("/:id/registration-token", (context) =>
+    employeeController.generateRegistrationToken(context)
+  );

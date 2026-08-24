@@ -36,6 +36,36 @@ export const authRepository = {
     });
   },
 
+  async findEmployeeByRegistrationTokenHash(tokenHash: string) {
+    return prisma.employee.findFirst({
+      where: { registrationTokenHash: tokenHash },
+      include: { user: true },
+    });
+  },
+
+  async setEmployeeRegistrationToken(
+    employeeId: number,
+    data: { tokenHash: string; expiresAt: Date }
+  ) {
+    return prisma.employee.update({
+      where: { id: employeeId },
+      data: {
+        registrationTokenHash: data.tokenHash,
+        registrationTokenExpiresAt: data.expiresAt,
+      },
+    });
+  },
+
+  async clearEmployeeRegistrationToken(employeeId: number) {
+    return prisma.employee.update({
+      where: { id: employeeId },
+      data: {
+        registrationTokenHash: null,
+        registrationTokenExpiresAt: null,
+      },
+    });
+  },
+
   async findRoleByName(name: string) {
     return prisma.role.findUnique({
       where: {
