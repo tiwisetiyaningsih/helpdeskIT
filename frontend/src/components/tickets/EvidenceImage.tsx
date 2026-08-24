@@ -3,13 +3,6 @@
 import { apiFetch } from "@/lib/apiFetch";
 import { useEffect, useState } from "react";
 
-function getToken() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return localStorage.getItem("token");
-}
 
 type EvidenceImageProps = {
   fileUrl: string;
@@ -39,21 +32,8 @@ export default function EvidenceImage({
     async function loadImage() {
       setStatus("loading");
 
-      const token = getToken();
-
-      if (!token) {
-        if (!isCancelled) {
-          setStatus("error");
-        }
-        return;
-      }
-
       try {
-        const response = await apiFetch(fileUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await apiFetch(fileUrl);
 
         if (!response.ok) {
           throw new Error(

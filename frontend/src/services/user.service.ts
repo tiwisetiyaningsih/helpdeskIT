@@ -68,19 +68,6 @@ type ApiResponse<T> = {
   data?: T;
 };
 
-function getToken() {
-  if (
-    typeof window ===
-    "undefined"
-  ) {
-    return null;
-  }
-
-  return localStorage.getItem(
-    "token"
-  );
-}
-
 async function request<T>(
   path: string,
   options: RequestInit = {}

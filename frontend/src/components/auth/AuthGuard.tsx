@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { setAccessToken } from "@/lib/apiFetch";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export default function AuthGuard({
   children,
@@ -12,14 +15,35 @@ export default function AuthGuard({
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    let cancelled = false;
 
-    if (!token) {
-      router.replace("/signin");
-      return;
-    }
+    (async () => {
+      try {
+        const response = await fetch(`${API_URL}/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+          headers: { Accept: "application/json" },
+        });
 
-    setChecking(false);
+        const data = await response.json().catch(() => null);
+
+        if (cancelled) return;
+
+        if (!response.ok || !data?.token) {
+          router.replace("/signin");
+          return;
+        }
+
+        setAccessToken(data.token);
+        setChecking(false);
+      } catch {
+        if (!cancelled) router.replace("/signin");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   // Mencegah dashboard tampil sebentar sebelum diarahkan

@@ -2,7 +2,7 @@ import crypto from "crypto";
 import path from "path";
 
 import { TicketStatus } from "@prisma/client";
-
+import { ROLE_GROUPS } from "../../middleware/permission";
 import { prisma } from "../../config/prisma";
 import {
   ensureMinioBucket,
@@ -312,14 +312,10 @@ export const ticketService = {
       where: {
         id: input.handlerId,
         isActive: true,
-
         role: {
           name: {
-            in: [
-              "IT HelpDesk",
-              "IT HELPDESK",
-              "IT Help Desk",
-            ],
+            in: ROLE_GROUPS.IT_HELPDESK,
+            mode: "insensitive",
           },
         },
       },
@@ -842,11 +838,8 @@ export const ticketService = {
       .trim()
       .toUpperCase();
 
-    const isPrivilegedUser = [
-      "ADMIN",
-      "IT HELPDESK",
-      "IT HELP DESK",
-    ].includes(roleName);
+    const isPrivilegedUser =
+      ROLE_GROUPS.ADMIN_OR_IT_HELPDESK.includes(roleName);
 
     const evidence =
       await prisma.ticketEvidence.findFirst({

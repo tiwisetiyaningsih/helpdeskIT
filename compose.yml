@@ -13,14 +13,6 @@ services:
       - mysql_data:/var/lib/mysql
 
 
-  redis:
-    image: redis:7
-    container_name: helpdesk-redis
-    restart: always
-    ports:
-      - "6380:6379"
-
-
   minio:
     image: quay.io/minio/minio
     container_name: helpdesk-minio
@@ -52,7 +44,6 @@ services:
 
     environment:
       DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
-      REDIS_URL: redis://redis:6379
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
@@ -61,7 +52,6 @@ services:
 
     depends_on:
       - mysql
-      - redis
       - minio
 
 

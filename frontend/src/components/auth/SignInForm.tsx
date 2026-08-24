@@ -9,6 +9,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/apiFetch";
+import { setAccessToken } from "@/lib/apiFetch";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -69,69 +70,67 @@ export default function SignInForm() {
     setMounted(true);
   }, []);
 
-  // Auto-login kalau sesi masih tersimpan — TAPI diverifikasi dulu ke
-  // server (bukan asal percaya localStorage).
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   const storedUser = localStorage.getItem("user");
 
-    if (!token || !storedUser) {
-      return;
-    }
+  //   if (!token || !storedUser) {
+  //     return;
+  //   }
 
-    let cancelled = false;
+  //   let cancelled = false;
 
-    (async () => {
-      let currentUser: LoginUser;
+  //   (async () => {
+  //     let currentUser: LoginUser;
 
-      try {
-        currentUser = JSON.parse(storedUser) as LoginUser;
-      } catch {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        return;
-      }
+  //     try {
+  //       currentUser = JSON.parse(storedUser) as LoginUser;
+  //     } catch {
+  //       localStorage.removeItem("token");
+  //       localStorage.removeItem("user");
+  //       return;
+  //     }
 
-      const dashboardPath = getDashboardPath(currentUser.role);
+  //     const dashboardPath = getDashboardPath(currentUser.role);
 
-      if (dashboardPath === "/signin") {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        return;
-      }
+  //     if (dashboardPath === "/signin") {
+  //       localStorage.removeItem("token");
+  //       localStorage.removeItem("user");
+  //       return;
+  //     }
 
-      try {
-        const response = await fetch(`${API_URL}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-          credentials: "include",
-        });
+  //     try {
+  //       const response = await fetch(`${API_URL}/auth/me`, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           Accept: "application/json",
+  //         },
+  //         credentials: "include",
+  //       });
 
-        if (cancelled) {
-          return;
-        }
+  //       if (cancelled) {
+  //         return;
+  //       }
 
-        if (!response.ok) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          return;
-        }
+  //       if (!response.ok) {
+  //         localStorage.removeItem("token");
+  //         localStorage.removeItem("user");
+  //         return;
+  //       }
 
-        router.replace(dashboardPath);
-      } catch {
-        if (!cancelled) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-        }
-      }
-    })();
+  //       router.replace(dashboardPath);
+  //     } catch {
+  //       if (!cancelled) {
+  //         localStorage.removeItem("token");
+  //         localStorage.removeItem("user");
+  //       }
+  //     }
+  //   })();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
+  //   return () => {
+  //     cancelled = true;
+  //   };
+  // }, [router]);
 
   useEffect(() => {
     const expiredMessage = sessionStorage.getItem("sessionExpiredMessage");
@@ -200,7 +199,7 @@ export default function SignInForm() {
         );
       }
 
-      localStorage.setItem("token", data.token);
+      setAccessToken(data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       setSuccess("Login berhasil. Mengarahkan ke dashboard...");

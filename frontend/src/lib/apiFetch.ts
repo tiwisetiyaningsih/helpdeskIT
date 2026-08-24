@@ -4,16 +4,22 @@ const API_URL =
 
 let refreshPromise: Promise<string | null> | null = null;
 
-function getToken() {
-  if (typeof window === "undefined") {
-    return null;
-  }
+let inMemoryToken: string | null = null;
 
-  return localStorage.getItem("token");
+export function getAccessToken() {
+  return inMemoryToken;
+}
+
+export function setAccessToken(token: string | null) {
+  inMemoryToken = token;
+}
+
+function getToken() {
+  return inMemoryToken;
 }
 
 function setToken(token: string) {
-  localStorage.setItem("token", token);
+  inMemoryToken = token;
 }
 
 function forceLogout(message: string) {
@@ -21,7 +27,7 @@ function forceLogout(message: string) {
     return;
   }
 
-  localStorage.removeItem("token");
+  setAccessToken(null);
   localStorage.removeItem("user");
 
   sessionStorage.setItem("sessionExpiredMessage", message);

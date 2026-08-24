@@ -1,7 +1,8 @@
 import { prisma } from "../../config/prisma";
+import { ROLE_GROUPS } from "../../middleware/permission";
 
 const DEFAULT_ROLES = [
-  "ADMIN",
+  ...ROLE_GROUPS.ADMIN,
   "IT HELPDESK",
   "EMPLOYEE",
 ];
