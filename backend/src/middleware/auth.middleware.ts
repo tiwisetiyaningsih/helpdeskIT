@@ -6,34 +6,37 @@ type JwtPayload = {
   role: string;
 };
 
-export const authMiddleware = new Elysia().derive(
-  { as: "scoped" },
-  async (context: any) => {
-    const { jwt, headers, set } = context;
+export const authMiddleware = new Elysia()
+  .derive({ as: "scoped" }, async (context: any) => {
+    const { jwt, headers } = context;
 
     const authorization = headers.authorization;
 
     if (!authorization) {
-      set.status = 401;
-      throw new Error("Token tidak ditemukan");
+      return { user: null, authErrorMessage: "Token tidak ditemukan" };
     }
 
     if (!authorization.startsWith("Bearer ")) {
-      set.status = 401;
-      throw new Error("Format token tidak valid");
+      return { user: null, authErrorMessage: "Format token tidak valid" };
     }
 
     const token = authorization.substring(7);
-
     const payload = await jwt.verify(token);
 
     if (!payload) {
-      set.status = 401;
-      throw new Error("Token tidak valid atau sudah kedaluwarsa");
+      return {
+        user: null,
+        authErrorMessage: "Token tidak valid atau sudah kedaluwarsa",
+      };
     }
 
-    return {
-      user: payload as JwtPayload,
-    };
-  }
-);
+    return { user: payload as JwtPayload, authErrorMessage: null };
+  })
+  .onBeforeHandle({ as: "scoped" }, (context: any) => {
+    const { authErrorMessage, set } = context;
+
+    if (authErrorMessage) {
+      set.status = 401;
+      return { success: false, message: authErrorMessage };
+    }
+  });

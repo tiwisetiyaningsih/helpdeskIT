@@ -1,4 +1,5 @@
 import { prisma } from "../../config/prisma";
+import { authRepository } from "../auth/auth.repository";
 
 type CreateUserInput = {
   employeeId: number;
@@ -265,7 +266,7 @@ export const userService = {
       });
     }
 
-    return prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id },
       data: {
         employeeId: data.employeeId,
@@ -298,6 +299,12 @@ export const userService = {
         },
       },
     });
+
+    if (hashedPassword || data.isActive === false) {
+      await authRepository.revokeAllUserRefreshTokens(id);
+    }
+
+    return updatedUser;
   },
 
   async delete(id: number) {

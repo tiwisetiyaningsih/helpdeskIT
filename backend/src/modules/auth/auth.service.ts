@@ -84,29 +84,19 @@ export const authService = {
   async login(body: { email: string; password: string }) {
     const user = await authRepository.findByEmail(body.email);
 
-    if (!user) {
-      return {
-        success: false,
-        status: 404,
-        message: "Email tidak ditemukan",
-      };
-    }
+    const DUMMY_HASH =
+      "$2b$10$CwTycUXWue0Thq9StjUM0uJ8Zj8yQKn7oNsA0Q5nvhV5R3JT0vRXG";
 
-    if (!user.isActive) {
-      return {
-        success: false,
-        status: 403,
-        message: "User tidak aktif",
-      };
-    }
+    const validPassword = await bcrypt.compare(
+      body.password,
+      user?.password ?? DUMMY_HASH
+    );
 
-    const validPassword = await bcrypt.compare(body.password, user.password);
-
-    if (!validPassword) {
+    if (!user || !user.isActive || !validPassword) {
       return {
         success: false,
         status: 401,
-        message: "Password salah",
+        message: "Email atau password salah",
       };
     }
 
