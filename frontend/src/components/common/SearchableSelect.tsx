@@ -100,6 +100,15 @@ export default function SearchableSelect({
     setIsOpen(false);
   }
 
+  function handleToggleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (disabled) return;
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleToggle();
+    }
+  }
+
   return (
     <div ref={wrapperRef} className="relative">
       <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -110,10 +119,17 @@ export default function SearchableSelect({
         )}
       </label>
 
-      <button
-        type="button"
-        disabled={disabled}
+      {/* [FIX] Elemen ini sengaja <div role="button">, BUKAN <button>,
+          karena di dalamnya ada tombol "hapus pilihan" (X). Dua
+          <button> yang saling bersarang itu tidak valid di HTML dan
+          memicu hydration error. */}
+      <div
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled}
+        aria-expanded={isOpen}
         onClick={handleToggle}
+        onKeyDown={handleToggleKeyDown}
         className={`flex h-11 w-full items-center justify-between rounded-lg border bg-white px-4 text-left text-sm outline-none transition dark:bg-gray-900 ${
           error
             ? "border-error-500 focus:border-error-500"
@@ -123,7 +139,7 @@ export default function SearchableSelect({
         } ${
           disabled
             ? "cursor-not-allowed bg-gray-100 opacity-60 dark:bg-gray-800"
-            : ""
+            : "cursor-pointer"
         }`}
       >
         <span
@@ -169,7 +185,7 @@ export default function SearchableSelect({
             />
           </svg>
         </div>
-      </button>
+      </div>
 
       {isOpen && !disabled && (
         <div className="absolute left-0 top-full z-[100] mt-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">

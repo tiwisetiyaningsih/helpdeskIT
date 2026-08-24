@@ -84,6 +84,11 @@ async function refreshAccessToken(): Promise<string | null> {
   return refreshPromise;
 }
 
+const PUBLIC_AUTH_PATHS = ["/auth/login", "/auth/register", "/auth/refresh"];
+
+function isPublicAuthPath(url: string) {
+  return PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
+}
 
 export async function apiFetch(
   path: string,
@@ -105,6 +110,10 @@ export async function apiFetch(
 
   const token = getToken();
   let response = await attempt(token);
+
+  if (isPublicAuthPath(url)) {
+    return response;
+  }
 
   if (response.status === 401) {
     let newToken: string | null = null;

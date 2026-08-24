@@ -10,6 +10,9 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/apiFetch";
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
 type UserRole = "Admin" | "Employee" | "IT HelpDesk";
 
 type LoginUser = {
@@ -60,7 +63,14 @@ export default function SignInForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Auto-login kalau sesi masih tersimpan
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Auto-login kalau sesi masih tersimpan — TAPI diverifikasi dulu ke
+  // server (bukan asal percaya localStorage).
   useEffect(() => {
     const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
@@ -69,8 +79,19 @@ export default function SignInForm() {
       return;
     }
 
-    try {
-      const currentUser = JSON.parse(storedUser) as LoginUser;
+    let cancelled = false;
+
+    (async () => {
+      let currentUser: LoginUser;
+
+      try {
+        currentUser = JSON.parse(storedUser) as LoginUser;
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        return;
+      }
+
       const dashboardPath = getDashboardPath(currentUser.role);
 
       if (dashboardPath === "/signin") {
@@ -79,11 +100,37 @@ export default function SignInForm() {
         return;
       }
 
-      router.replace(dashboardPath);
-    } catch {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-    }
+      try {
+        const response = await fetch(`${API_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!response.ok) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          return;
+        }
+
+        router.replace(dashboardPath);
+      } catch {
+        if (!cancelled) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   useEffect(() => {
@@ -366,7 +413,7 @@ export default function SignInForm() {
             <Button
               className="w-full !rounded-xl !bg-gradient-to-r !from-indigo-600 !to-violet-600 !py-3 !font-medium !shadow-lg !shadow-indigo-600/25 transition-all duration-200 hover:!-translate-y-0.5 hover:!shadow-xl hover:!shadow-indigo-600/35 active:!translate-y-0 disabled:!opacity-60"
               size="sm"
-              disabled={loading || Boolean(success)}
+              disabled={!mounted || loading || Boolean(success)}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

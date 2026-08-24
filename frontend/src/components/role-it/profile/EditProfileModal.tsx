@@ -8,6 +8,8 @@ import {
 
 import type { ProfileIt } from "./ItProfile";
 import { apiFetch } from "@/lib/apiFetch";
+import SearchableSelect from "@/components/common/SearchableSelect";
+import { UNIT_KERJA_OPTIONS } from "@/components/employee/employee-options";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -27,6 +29,7 @@ type EditProfileForm = {
   nama: string;
   email: string;
   jobTitle: string;
+  unitKerja: string;
 };
 
 type UpdateProfileResponse = {
@@ -39,6 +42,7 @@ const initialForm: EditProfileForm = {
   nama: "",
   email: "",
   jobTitle: "",
+  unitKerja: "",
 };
 
 async function parseJsonResponse<T>(
@@ -86,6 +90,7 @@ export default function EditProfileModal({
         "",
       email: user.email || "",
       jobTitle: user.employee?.jobTitle || "",
+      unitKerja: user.employee?.unitKerja || "",
     });
 
     setError("");
@@ -137,6 +142,7 @@ export default function EditProfileModal({
       const nama = form.nama.trim();
       const email = form.email.trim();
       const jobTitle = form.jobTitle.trim();
+      const unitKerja = form.unitKerja.trim();
 
       if (!nama) {
         throw new Error("Nama lengkap wajib diisi.");
@@ -151,6 +157,10 @@ export default function EditProfileModal({
 
       if (!emailPattern.test(email)) {
         throw new Error("Format email tidak valid.");
+      }
+
+      if (!unitKerja) {
+        throw new Error("Unit kerja wajib dipilih.");
       }
 
       const token = localStorage.getItem("token");
@@ -174,6 +184,7 @@ export default function EditProfileModal({
             nama,
             email,
             jobTitle: jobTitle || null,
+            unitKerja,
           }),
         }
       );
@@ -335,15 +346,31 @@ export default function EditProfileModal({
               />
             </div>
 
+            <SearchableSelect
+              label="Unit Kerja"
+              required
+              searchable
+              placeholder="Pilih unit kerja"
+              searchPlaceholder="Cari unit kerja..."
+              options={UNIT_KERJA_OPTIONS}
+              value={form.unitKerja}
+              disabled={submitting}
+              onChange={(value) =>
+                setForm((current) => ({
+                  ...current,
+                  unitKerja: value,
+                }))
+              }
+            />
+
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-white/[0.03]">
               <p className="text-sm font-medium text-gray-800 dark:text-white">
                 Data yang tidak dapat diubah
               </p>
 
               <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
-                NIK, jabatan, unit kerja, role, dan
-                status akun hanya dapat diubah oleh
-                administrator.
+                NIK, jabatan, role, dan status akun
+                hanya dapat diubah oleh administrator.
               </p>
             </div>
           </div>
