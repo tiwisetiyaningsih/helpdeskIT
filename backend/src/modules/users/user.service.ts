@@ -1,6 +1,5 @@
 import { prisma } from "../../config/prisma";
 import { authRepository } from "../auth/auth.repository";
-
 type CreateUserInput = {
   employeeId: number;
   email: string;
@@ -8,7 +7,6 @@ type CreateUserInput = {
   roleId: number;
   isActive?: boolean;
 };
-
 type UpdateUserInput = {
   employeeId?: number;
   email?: string;
@@ -16,7 +14,6 @@ type UpdateUserInput = {
   roleId?: number;
   isActive?: boolean;
 };
-
 export const userService = {
   async getAll() {
     return prisma.user.findMany({
@@ -49,7 +46,6 @@ export const userService = {
       },
     });
   },
-
   async getById(id: number) {
     return prisma.user.findUnique({
       where: { id },
@@ -79,7 +75,6 @@ export const userService = {
       },
     });
   },
-
   async getFormOptions() {
     const [employees, roles] = await Promise.all([
       prisma.employee.findMany({
@@ -102,7 +97,6 @@ export const userService = {
           nama: "asc",
         },
       }),
-
       prisma.role.findMany({
         select: {
           id: true,
@@ -113,59 +107,48 @@ export const userService = {
         },
       }),
     ]);
-
     return {
       employees,
       roles,
     };
   },
-
   async create(data: CreateUserInput) {
     const employee = await prisma.employee.findUnique({
       where: {
         id: data.employeeId,
       },
     });
-
     if (!employee) {
       throw new Error("Employee tidak ditemukan.");
     }
-
     const employeeUser = await prisma.user.findUnique({
       where: {
         employeeId: data.employeeId,
       },
     });
-
     if (employeeUser) {
       throw new Error("Employee tersebut sudah memiliki akun user.");
     }
-
     const emailExists = await prisma.user.findUnique({
       where: {
         email: data.email.toLowerCase().trim(),
       },
     });
-
     if (emailExists) {
       throw new Error("Email sudah digunakan.");
     }
-
     const role = await prisma.role.findUnique({
       where: {
         id: data.roleId,
       },
     });
-
     if (!role) {
       throw new Error("Role tidak ditemukan.");
     }
-
     const hashedPassword = await Bun.password.hash(data.password, {
       algorithm: "bcrypt",
       cost: 10,
     });
-
     return prisma.user.create({
       data: {
         employeeId: data.employeeId,
@@ -196,16 +179,13 @@ export const userService = {
       },
     });
   },
-
   async update(id: number, data: UpdateUserInput) {
     const currentUser = await prisma.user.findUnique({
       where: { id },
     });
-
     if (!currentUser) {
       throw new Error("User tidak ditemukan.");
     }
-
     if (
       data.employeeId !== undefined &&
       data.employeeId !== currentUser.employeeId
@@ -215,57 +195,46 @@ export const userService = {
           id: data.employeeId,
         },
       });
-
       if (!employee) {
         throw new Error("Employee tidak ditemukan.");
       }
-
       const employeeUser = await prisma.user.findUnique({
         where: {
           employeeId: data.employeeId,
         },
       });
-
       if (employeeUser && employeeUser.id !== id) {
         throw new Error("Employee tersebut sudah memiliki akun user.");
       }
     }
-
     if (data.email !== undefined) {
       const normalizedEmail = data.email.toLowerCase().trim();
-
       const emailExists = await prisma.user.findUnique({
         where: {
           email: normalizedEmail,
         },
       });
-
       if (emailExists && emailExists.id !== id) {
         throw new Error("Email sudah digunakan.");
       }
     }
-
     if (data.roleId !== undefined) {
       const role = await prisma.role.findUnique({
         where: {
           id: data.roleId,
         },
       });
-
       if (!role) {
         throw new Error("Role tidak ditemukan.");
       }
     }
-
     let hashedPassword: string | undefined;
-
     if (data.password?.trim()) {
       hashedPassword = await Bun.password.hash(data.password, {
         algorithm: "bcrypt",
         cost: 10,
       });
     }
-
     const updatedUser = await prisma.user.update({
       where: { id },
       data: {
@@ -299,27 +268,21 @@ export const userService = {
         },
       },
     });
-
     if (hashedPassword || data.isActive === false) {
       await authRepository.revokeAllUserRefreshTokens(id);
     }
-
     return updatedUser;
   },
-
   async delete(id: number) {
     const user = await prisma.user.findUnique({
       where: { id },
     });
-
     if (!user) {
       throw new Error("User tidak ditemukan.");
     }
-
     await prisma.user.delete({
       where: { id },
     });
-
     return user;
   },
 };
