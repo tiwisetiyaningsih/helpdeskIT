@@ -88,99 +88,112 @@ export const ticketRoute = new Elysia({
   )
 
   .patch(
-  "/:id/progress",
-  (context) =>
-    ticketController.updateTicketProgress(
-      context
-    ),
-  {
-    params: t.Object({
-      id: t.String(),
-    }),
-
-    body: t.Object({
-      kategoriKeluhan: t.Optional(
-        t.Nullable(t.String())
+    "/:id/start",
+    (context) =>
+      ticketController.startTicketWork(
+        context
       ),
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+    }
+  )
 
-      priority: t.Optional(
-        t.Number()
+  .patch(
+    "/:id/progress",
+    (context) =>
+      ticketController.updateTicketProgress(
+        context
       ),
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
 
-      sla: t.Optional(
-        t.Nullable(
+      body: t.Object({
+        kategoriKeluhan: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        priority: t.Optional(
+          t.Number()
+        ),
+
+        sla: t.Optional(
+          t.Nullable(
+            t.Union([
+              t.String(),
+              t.Number(),
+            ])
+          )
+        ),
+
+        eskalasi: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        batasResponse: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        selesaiResponse: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        keteranganResponse: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        isPending: t.Optional(
+          t.Boolean()
+        ),
+
+        lamaPending: t.Optional(
+          t.Nullable(t.Number())
+        ),
+
+        analisaAwal: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        hasilAnalisa: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        mulaiPengerjaan: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        estimasiPengerjaan: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        selesaiPengerjaan: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        catatan: t.Optional(
+          t.Nullable(t.String())
+        ),
+
+        status: t.Optional(
           t.Union([
-            t.String(),
-            t.Number(),
+            t.Literal("MASUK"),
+            t.Literal("OPEN"),
+            t.Literal("ON_GOING"),
+            t.Literal("PENDING"),
+            t.Literal("COMPLETED"),
+            t.Literal("CANCELLED"),
           ])
-        )
-      ),
+        ),
 
-      eskalasi: t.Optional(
-        t.Nullable(t.String())
-      ),
-
-      batasResponse: t.Optional(
-        t.Nullable(t.String())
-      ),
-
-      selesaiResponse: t.Optional(
-        t.Nullable(t.String())
-      ),
-
-      keteranganResponse: t.Optional(
-        t.Nullable(t.String())
-      ),
-
-      isPending: t.Optional(
-        t.Boolean()
-      ),
-
-      lamaPending: t.Optional(
-        t.Nullable(t.Number())
-      ),
-
-      analisaAwal: t.Optional(
-        t.Nullable(t.String())
-      ),
-
-      hasilAnalisa: t.Optional(
-        t.Nullable(t.String())
-      ),
-
-      mulaiPengerjaan: t.Optional(
-        t.Nullable(t.String())
-      ),
-
-      estimasiPengerjaan: t.Optional(
-        t.Nullable(t.String())
-      ),
-
-      selesaiPengerjaan: t.Optional(
-        t.Nullable(t.String())
-      ),
-
-      catatan: t.Optional(
-        t.Nullable(t.String())
-      ),
-
-      status: t.Optional(
-        t.Union([
-          t.Literal("MASUK"),
-          t.Literal("OPEN"),
-          t.Literal("ON_GOING"),
-          t.Literal("PENDING"),
-          t.Literal("COMPLETED"),
-          t.Literal("CANCELLED"),
-        ])
-      ),
-
-      keterangan: t.Optional(
-        t.Nullable(t.String())
-      ),
-    }),
-  }
-)
+        keterangan: t.Optional(
+          t.Nullable(t.String())
+        ),
+      }),
+    }
+  )
 
   .get(
     "/it-helpdesk-users",
