@@ -10,6 +10,25 @@ import { roleRoute } from "./modules/roles/role.route";
 
 const app = new Elysia();
 
+function applySecurityHeaders(set: any) {
+  set.headers["X-Content-Type-Options"] = "nosniff";
+  set.headers["X-Frame-Options"] = "DENY";
+  set.headers["Referrer-Policy"] = "no-referrer";
+  set.headers["Permissions-Policy"] =
+    "camera=(), microphone=(), geolocation=()";
+  set.headers["Content-Security-Policy"] =
+    "default-src 'none'; frame-ancestors 'none'";
+
+  if (process.env.NODE_ENV === "production") {
+    set.headers["Strict-Transport-Security"] =
+      "max-age=63072000; includeSubDomains";
+  }
+}
+
+app.onAfterHandle(({ set }) => {
+  applySecurityHeaders(set);
+});
+
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -48,6 +67,7 @@ app.use(roleRoute);
 
 app.onError(({ code, error, set }) => {
   console.error("Unhandled error:", error);
+  applySecurityHeaders(set);
 
   if (code === "VALIDATION") {
     set.status = 400;

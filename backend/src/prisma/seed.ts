@@ -12,8 +12,9 @@ async function main() {
   // =========================
   const adminRole = await prisma.role.upsert({
     where: { name: "Admin" },
-    update: {},
+    update: { code: "ADMIN" },
     create: {
+      code: "ADMIN",
       name: "Admin",
       description: "Administrator Sistem",
     },
@@ -21,8 +22,9 @@ async function main() {
 
   const consultantRole = await prisma.role.upsert({
     where: { name: "IT Helpdesk" },
-    update: {},
+    update: { code: "IT_HELPDESK" },
     create: {
+      code: "IT_HELPDESK",
       name: "IT Helpdesk",
       description: "Petugas Helpdesk",
     },
@@ -30,8 +32,9 @@ async function main() {
 
   const employeeRole = await prisma.role.upsert({
     where: { name: "Employee" },
-    update: {},
+    update: { code: "EMPLOYEE" },
     create: {
+      code: "EMPLOYEE",
       name: "Employee",
       description: "Karyawan",
     },
