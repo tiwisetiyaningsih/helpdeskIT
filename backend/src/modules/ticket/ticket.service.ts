@@ -39,18 +39,20 @@ function sanitizeFileName(fileName: string) {
 
 async function generateTicketNumber() {
   const now = new Date();
-
   const datePart = [
     now.getFullYear(),
     String(now.getMonth() + 1).padStart(2, "0"),
     String(now.getDate()).padStart(2, "0"),
   ].join("");
 
-  const randomPart = String(
-    Math.floor(10000 + Math.random() * 90000)
-  );
+  const counter = await prisma.ticketNumberCounter.upsert({
+    where: { datePart },
+    create: { datePart, lastValue: 1 },
+    update: { lastValue: { increment: 1 } },
+  });
 
-  return `TKT-${datePart}-${randomPart}`;
+  const sequence = String(counter.lastValue).padStart(5, "0");
+  return `TKT-${datePart}-${sequence}`;
 }
 
 async function uploadEvidence(

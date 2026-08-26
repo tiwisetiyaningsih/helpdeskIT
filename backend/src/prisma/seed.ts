@@ -58,15 +58,30 @@ async function main() {
 
   console.log("✅ Employee berhasil dibuat");
 
+  // Employee contoh untuk testing alur registrasi (belum punya akun user)
+  const testEmployee = await prisma.employee.upsert({
+    where: {
+      nik: "20260099",
+    },
+    update: {},
+    create: {
+      nik: "20260099",
+      nama: "Budi Testing",
+      jabatan: "Staff",
+      unitKerja: "Umum",
+      isActive: true,
+    },
+  });
+
   const rawToken = crypto.randomBytes(24).toString("hex");
   await prisma.employee.update({
-    where: { id: employee.id },
+    where: { id: testEmployee.id },
     data: {
       registrationTokenHash: crypto.createHash("sha256").update(rawToken).digest("hex"),
       registrationTokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
     },
   });
-  console.log(`Registration token untuk ${employee.nik}: ${rawToken}`);
+  console.log(`Registration token untuk NIK ${testEmployee.nik}: ${rawToken}`);
 
   // =========================
   // HASH PASSWORD
