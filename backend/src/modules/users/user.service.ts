@@ -1,6 +1,5 @@
 import { prisma } from "../../config/prisma";
 import { authRepository } from "../auth/auth.repository";
-import { invalidateRoleCache } from "../../utils/roleCache";
 
 type CreateUserInput = {
   employeeId: number;
@@ -272,10 +271,6 @@ export const userService = {
     });
     if (hashedPassword || data.isActive === false) {
       await authRepository.revokeAllUserRefreshTokens(id);
-    }
-
-    if (data.roleId !== undefined || data.isActive !== undefined) {
-      invalidateRoleCache(id);
     }
 
     return updatedUser;

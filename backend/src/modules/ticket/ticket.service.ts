@@ -3,7 +3,8 @@ import path from "path";
 
 import { TicketStatus } from "@prisma/client";
 import {
-  ROLE_GROUPS,
+  ROLE_ACCESS,
+  ROLE_CODES,
 } from "../../middleware/permission";
 import { prisma } from "../../config/prisma";
 import {
@@ -332,9 +333,7 @@ export const ticketService = {
         id: input.handlerId,
         isActive: true,
         role: {
-          name: {
-            in: ROLE_GROUPS.IT_HELPDESK,
-          },
+          code: ROLE_CODES.IT_HELPDESK,
         },
       },
 
@@ -823,16 +822,17 @@ export const ticketService = {
     };
   },
 
-  async getEvidenceFile(
+    async getEvidenceFile(
     evidenceId: number,
     userId: number,
     roleCode: string | null
   ) {
+    const allowedRoles: readonly string[] =
+      ROLE_ACCESS.ADMIN_OR_IT_HELPDESK;
+
     const isPrivilegedUser =
       roleCode !== null &&
-      (
-        ROLE_GROUPS.ADMIN_OR_IT_HELPDESK
-      ).includes(roleCode);
+      allowedRoles.includes(roleCode);
 
     const evidence =
       await prisma.ticketEvidence.findFirst({
@@ -842,10 +842,10 @@ export const ticketService = {
           ...(isPrivilegedUser
             ? {}
             : {
-              ticket: {
-                reporterId: userId,
-              },
-            }),
+                ticket: {
+                  reporterId: userId,
+                },
+              }),
         },
       });
 
@@ -864,21 +864,17 @@ export const ticketService = {
     const chunks: Buffer[] = [];
 
     for await (const chunk of stream) {
-      chunks.push(
-        Buffer.from(chunk)
-      );
+      chunks.push(Buffer.from(chunk));
     }
 
     return {
-      buffer:
-        Buffer.concat(chunks),
+      buffer: Buffer.concat(chunks),
 
       mimeType:
         evidence.mimeType ||
         "application/octet-stream",
 
-      fileName:
-        evidence.originalName,
+      fileName: evidence.originalName,
     };
   },
 };

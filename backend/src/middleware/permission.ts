@@ -1,78 +1,38 @@
-import { prisma } from "../config/prisma";
 import { Elysia } from "elysia";
-import { getCachedRole, setCachedRole } from "../utils/roleCache";
 
-export const ROLE_GROUPS: Record<string, string[]> = {
-  ADMIN: ["ADMIN", "ADMINISTRATOR"],
-  IT_HELPDESK: ["IT HELPDESK"],
-  ADMIN_OR_IT_HELPDESK: ["ADMIN", "IT HELPDESK"],
+export const ROLE_CODES = {
+  ADMIN: "ADMIN",
+  IT_HELPDESK: "IT_HELPDESK",
+  EMPLOYEE: "EMPLOYEE",
+} as const;
+
+export type RoleCode =
+  (typeof ROLE_CODES)[keyof typeof ROLE_CODES];
+
+export const ROLE_ACCESS = {
+  ADMIN: [ROLE_CODES.ADMIN],
+  IT_HELPDESK: [ROLE_CODES.IT_HELPDESK],
+  ADMIN_OR_IT_HELPDESK: [
+    ROLE_CODES.ADMIN,
+    ROLE_CODES.IT_HELPDESK,
+  ],
+} satisfies Record<string, RoleCode[]>;
+
+type CurrentUser = {
+  id: number;
+  email: string;
+  roleId: number;
+  isActive: boolean;
+  role: {
+    id: number;
+    code: string | null;
+    name: string;
+  };
 };
 
-export const ROLE_NAME_IT_HELPDESK = "IT Helpdesk";
-
-type AuthenticatedUser = {
-  id?: number | string;
-  userId?: number | string;
-};
-
-function getAuthenticatedUserId(user: AuthenticatedUser | undefined) {
-  const rawId = user?.id ?? user?.userId;
-  const userId = Number(rawId);
-
-  if (!rawId || Number.isNaN(userId)) {
-    throw new Error("Data pengguna login tidak valid.");
-  }
-
-  return userId;
-}
-
-export async function ensureRole(
-  user: AuthenticatedUser | undefined,
-  allowedRoles: string[]
+export function getRoleErrorStatus(
+  message: string
 ) {
-  const userId = getAuthenticatedUserId(user);
-
-  let cached = getCachedRole(userId);
-
-  if (!cached) {
-    const currentUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        isActive: true,
-        role: { select: { name: true } },
-      },
-    });
-
-    if (!currentUser) {
-      throw new Error("Pengguna tidak ditemukan.");
-    }
-
-    const roleName = String(currentUser.role?.name || "")
-      .trim()
-      .toUpperCase();
-
-    setCachedRole(userId, currentUser.isActive, roleName);
-    cached = { isActive: currentUser.isActive, roleName, expiresAt: 0 };
-  }
-
-  if (!cached.isActive) {
-    throw new Error("Akun pengguna sedang tidak aktif.");
-  }
-
-  const normalizedAllowed = allowedRoles.map((role) =>
-    role.trim().toUpperCase()
-  );
-
-  if (!normalizedAllowed.includes(cached.roleName)) {
-    throw new Error("Anda tidak memiliki akses untuk aksi ini.");
-  }
-
-  return { id: userId, isActive: cached.isActive, role: { name: cached.roleName } };
-}
-
-/** Konversi pesan Error dari ensureRole() menjadi HTTP status yang sesuai. */
-export function getRoleErrorStatus(message: string) {
   if (
     message.includes("tidak memiliki akses") ||
     message.includes("tidak aktif")
@@ -80,41 +40,76 @@ export function getRoleErrorStatus(message: string) {
     return 403;
   }
 
-  if (message.includes("tidak ditemukan")) {
-    return 404;
+  if (
+    message.includes("tidak ditemukan") ||
+    message.includes("Sesi pengguna")
+  ) {
+    return 401;
   }
 
   return 500;
 }
 
-export const requireRole = (allowedRoles: string[]) =>
+export const requireRole = (
+  allowedRoles: readonly RoleCode[]
+) =>
   new Elysia({
     name: `requireRole(${allowedRoles.join(",")})`,
   })
-    .derive({ as: "scoped" }, async (context: any) => {
-      const { user } = context;
+    .derive(
+      { as: "scoped" },
+      (context: any) => {
+        const currentUser =
+          context.currentUser as CurrentUser | null;
 
-      try {
-        const currentUser = await ensureRole(user, allowedRoles);
-        return { roleUser: currentUser, roleErrorMessage: null as string | null };
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Anda tidak memiliki akses untuk aksi ini.";
+        if (!currentUser) {
+          return {
+            roleUser: null,
+            roleErrorStatus: 401,
+            roleErrorMessage:
+              "Sesi pengguna tidak valid.",
+          };
+        }
 
-        return { roleUser: null, roleErrorMessage: message };
-      }
-    })
-    .onBeforeHandle({ as: "scoped" }, (context: any) => {
-      const { roleErrorMessage, set } = context;
+        const roleCode =
+          currentUser.role.code as RoleCode | null;
 
-      if (roleErrorMessage) {
-        set.status = getRoleErrorStatus(roleErrorMessage);
+        if (
+          !roleCode ||
+          !allowedRoles.includes(roleCode)
+        ) {
+          return {
+            roleUser: null,
+            roleErrorStatus: 403,
+            roleErrorMessage:
+              "Anda tidak memiliki akses untuk aksi ini.",
+          };
+        }
 
         return {
-          success: false,
-          message: roleErrorMessage,
+          roleUser: currentUser,
+          roleErrorStatus: null,
+          roleErrorMessage: null,
         };
       }
-    });
+    )
+    .onBeforeHandle(
+      { as: "scoped" },
+      (context: any) => {
+        const {
+          roleErrorStatus,
+          roleErrorMessage,
+          set,
+        } = context;
+
+        if (roleErrorMessage) {
+          set.status =
+            roleErrorStatus ?? 403;
+
+          return {
+            success: false,
+            message: roleErrorMessage,
+          };
+        }
+      }
+    );

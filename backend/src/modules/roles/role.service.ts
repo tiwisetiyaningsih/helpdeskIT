@@ -1,14 +1,18 @@
 import { prisma } from "../../config/prisma";
-import { ROLE_GROUPS } from "../../middleware/permission";
+import {
+  ROLE_CODES,
+} from "../../middleware/permission";
 
-const DEFAULT_ROLES = [
-  ...ROLE_GROUPS.ADMIN,
-  ...ROLE_GROUPS.IT_HELPDESK,
-  "EMPLOYEE",
-];
+const DEFAULT_ROLE_CODES: readonly string[] =
+  Object.values(ROLE_CODES);
 
-function normalizeRoleName(name: string) {
-  return name.trim().toUpperCase();
+function isDefaultRole(
+  roleCode: string | null
+) {
+  return (
+    roleCode !== null &&
+    DEFAULT_ROLE_CODES.includes(roleCode)
+  );
 }
 
 export const roleService = {
@@ -36,9 +40,8 @@ export const roleService = {
 
       userCount: role._count.users,
 
-      isDefault: DEFAULT_ROLES.includes(
-        normalizeRoleName(role.name)
-      ),
+      isDefault:
+        isDefaultRole(role.code),
     }));
   },
 
@@ -70,9 +73,7 @@ export const roleService = {
 
       userCount: role._count.users,
 
-      isDefault: DEFAULT_ROLES.includes(
-        normalizeRoleName(role.name)
-      ),
+      isDefault: isDefaultRole(role.code),
     };
   },
 
@@ -153,20 +154,12 @@ export const roleService = {
       );
     }
 
-    /*
-     * Nama role bawaan tidak boleh diganti karena
-     * saat ini hak akses masih diperiksa berdasarkan
-     * nama role pada backend dan frontend.
-     */
-    const isDefaultRole =
-      DEFAULT_ROLES.includes(
-        normalizeRoleName(currentRole.name)
-      );
+    const isSystemRole =
+      isDefaultRole(currentRole.code);
 
     if (
-      isDefaultRole &&
-      normalizeRoleName(name) !==
-        normalizeRoleName(currentRole.name)
+      isSystemRole &&
+      name !== currentRole.name
     ) {
       throw new Error(
         "Nama role bawaan tidak dapat diubah. Anda hanya dapat mengubah deskripsinya."
@@ -205,11 +198,7 @@ export const roleService = {
       throw new Error("Role tidak ditemukan.");
     }
 
-    if (
-      DEFAULT_ROLES.includes(
-        normalizeRoleName(role.name)
-      )
-    ) {
+    if (isDefaultRole(role.code)) {
       throw new Error(
         "Role bawaan sistem tidak dapat dihapus."
       );

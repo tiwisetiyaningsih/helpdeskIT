@@ -2,8 +2,8 @@ import { prisma } from "../../config/prisma";
 import { ticketService } from "./ticket.service";
 import { TicketStatus } from "@prisma/client";
 import {
-  ROLE_GROUPS,
-  ROLE_NAME_IT_HELPDESK,
+  ROLE_ACCESS,
+  ROLE_CODES,
 } from "../../middleware/permission";
 import { safeErrorMessage } from "../../utils/errorMessage";
 
@@ -12,6 +12,17 @@ type AuthenticatedUser = {
   id?: number | string;
   userId?: number | string;
 };
+
+function hasRole(
+  roleCode: string | null | undefined,
+  allowedRoles: readonly string[]
+) {
+  return (
+    roleCode !== null &&
+    roleCode !== undefined &&
+    allowedRoles.includes(roleCode)
+  );
+}
 
 function getAuthenticatedUserId(
   user: AuthenticatedUser | undefined
@@ -215,51 +226,28 @@ export const ticketController = {
   },
 
   async getAllTickets(context: any) {
-    const { user, set } = context;
+    const {
+      currentUser,
+      set,
+    } = context;
 
     try {
-      const userId =
-        getAuthenticatedUserId(user);
-
-      const currentUser =
-        await prisma.user.findUnique({
-          where: {
-            id: userId,
-          },
-          select: {
-            id: true,
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        });
-
       if (!currentUser) {
         set.status = 401;
 
         return {
           success: false,
-          message:
-            "Pengguna tidak ditemukan.",
+          message: "Pengguna tidak ditemukan.",
         };
       }
 
-      const roleName = String(
-        currentUser.role?.name || ""
-      )
-        .trim()
-        .toUpperCase();
-
-      console.log(
-        "ROLE AKSES TICKET:",
-        roleName
-      );
+      const allowedRoles: readonly string[] =
+        ROLE_ACCESS.ADMIN_OR_IT_HELPDESK;
 
       if (
-        !ROLE_GROUPS.ADMIN_OR_IT_HELPDESK.includes(
-          roleName
+        !hasRole(
+          currentUser.role?.code,
+          allowedRoles
         )
       ) {
         set.status = 403;
@@ -289,7 +277,7 @@ export const ticketController = {
       return {
         success: false,
         message:
-          safeErrorMessage(error, "Gagal mengambil data ticket."),
+          "Gagal mengambil data ticket.",
       };
     }
   },
@@ -297,14 +285,12 @@ export const ticketController = {
   async assignTicketByAdmin(context: any) {
     const {
       params,
-      user,
       body,
+      currentUser,
       set,
     } = context;
 
     try {
-      const adminId =
-        getAuthenticatedUserId(user);
 
       const ticketId =
         Number(params.id);
@@ -321,24 +307,6 @@ export const ticketController = {
             "ID ticket tidak valid.",
         };
       }
-
-      const currentUser =
-        await prisma.user.findUnique({
-          where: {
-            id: adminId,
-          },
-
-          select: {
-            id: true,
-            isActive: true,
-
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        });
 
       if (!currentUser) {
         set.status = 401;
@@ -360,14 +328,14 @@ export const ticketController = {
         };
       }
 
-      const roleName = String(
-        currentUser.role?.name || ""
-      )
-        .trim()
-        .toUpperCase();
+      const adminRoles: readonly string[] =
+        ROLE_ACCESS.ADMIN;
 
       if (
-        !ROLE_GROUPS.ADMIN.includes(roleName)
+        !hasRole(
+          currentUser.role?.code,
+          adminRoles
+        )
       ) {
         set.status = 403;
 
@@ -576,17 +544,13 @@ export const ticketController = {
 
   async startTicketWork(context: any) {
     const {
-      user,
       params,
+      currentUser,
       set,
     } = context;
 
     try {
-      const handlerId =
-        getAuthenticatedUserId(user);
-
-      const ticketId =
-        Number(params.id);
+      const ticketId = Number(params.id);
 
       if (
         Number.isNaN(ticketId) ||
@@ -596,52 +560,58 @@ export const ticketController = {
 
         return {
           success: false,
-          message:
-            "ID ticket tidak valid.",
+          message: "ID ticket tidak valid.",
         };
       }
-
-      const currentUser =
-        await prisma.user.findUnique({
-          where: {
-            id: handlerId,
-          },
-
-          select: {
-            id: true,
-            isActive: true,
-
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        });
 
       if (!currentUser) {
         set.status = 401;
 
         return {
           success: false,
-          message:
-            "Pengguna tidak ditemukan.",
+          message: "Pengguna tidak ditemukan.",
         };
       }
 
-      const roleName = String(
-        currentUser.role?.name || ""
-      )
-        .trim()
-        .toUpperCase();
+      if (!currentUser.isActive) {
+        set.status = 403;
 
-      if (!ROLE_GROUPS.IT_HELPDESK.includes(roleName)) {
+        return {
+          success: false,
+          message: "Akun Anda sedang tidak aktif.",
+        };
+      }
+
+      const helpdeskRoles: readonly string[] =
+        ROLE_ACCESS.IT_HELPDESK;
+
+      if (
+        !hasRole(
+          currentUser.role?.code,
+          helpdeskRoles
+        )
+      ) {
         set.status = 403;
 
         return {
           success: false,
           message:
             "Hanya IT HelpDesk yang dapat mengambil ticket.",
+        };
+      }
+
+      const handlerId = Number(currentUser.id);
+
+      if (
+        Number.isNaN(handlerId) ||
+        handlerId <= 0
+      ) {
+        set.status = 401;
+
+        return {
+          success: false,
+          message:
+            "Data pengguna login tidak valid.",
         };
       }
 
@@ -653,39 +623,34 @@ export const ticketController = {
 
       return {
         success: true,
-        message:
-          "Ticket berhasil diambil.",
+        message: "Ticket berhasil diambil.",
         ticket,
       };
     } catch (error) {
       console.error(
-        "ASSIGN TICKET ERROR:",
+        "START TICKET WORK ERROR:",
         error
       );
 
       const message =
-        safeErrorMessage(error, "Gagal mengambil ticket.");
+        safeErrorMessage(
+          error,
+          "Gagal mengambil ticket."
+        );
 
-      if (
-        message.includes(
-          "tidak ditemukan"
-        )
-      ) {
+      if (message.includes("tidak ditemukan")) {
         set.status = 404;
       } else if (
-        message.includes(
-          "sudah diambil"
-        )
-      ) {
-        set.status = 409;
-      } else if (
-        message.includes(
-          "Hanya IT HelpDesk"
-        )
+        message.includes("HelpDesk lain") ||
+        message.includes("Hanya IT HelpDesk")
       ) {
         set.status = 403;
+      } else if (
+        message.includes("berstatus OPEN")
+      ) {
+        set.status = 409;
       } else {
-        set.status = 500;
+        set.status = 400;
       }
 
       return {
@@ -697,17 +662,13 @@ export const ticketController = {
 
   async getTicketDetail(context: any) {
     const {
-      user,
       params,
+      currentUser,
       set,
     } = context;
 
     try {
-      const userId =
-        getAuthenticatedUserId(user);
-
-      const ticketId =
-        Number(params.id);
+      const ticketId = Number(params.id);
 
       if (
         Number.isNaN(ticketId) ||
@@ -717,35 +678,26 @@ export const ticketController = {
 
         return {
           success: false,
-          message:
-            "ID ticket tidak valid.",
+          message: "ID ticket tidak valid.",
         };
       }
 
-      const currentUser =
-        await prisma.user.findUnique({
-          where: {
-            id: userId,
-          },
+      if (!currentUser) {
+        set.status = 401;
 
-          select: {
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        });
+        return {
+          success: false,
+          message: "Pengguna tidak ditemukan.",
+        };
+      }
 
-      const roleName = String(
-        currentUser?.role?.name || ""
-      )
-        .trim()
-        .toUpperCase();
+      const allowedRoles: readonly string[] =
+        ROLE_ACCESS.ADMIN_OR_IT_HELPDESK;
 
       if (
-        !ROLE_GROUPS.ADMIN_OR_IT_HELPDESK.includes(
-          roleName
+        !hasRole(
+          currentUser.role?.code,
+          allowedRoles
         )
       ) {
         set.status = 403;
@@ -757,14 +709,39 @@ export const ticketController = {
         };
       }
 
+      const userId = Number(currentUser.id);
+
+      if (
+        Number.isNaN(userId) ||
+        userId <= 0
+      ) {
+        set.status = 401;
+
+        return {
+          success: false,
+          message:
+            "Data pengguna login tidak valid.",
+        };
+      }
+
       const ticket =
         await ticketService.getTicketDetail(
           ticketId
         );
 
-      const isAdmin = ROLE_GROUPS.ADMIN.includes(roleName);
+      const adminRoles: readonly string[] =
+        ROLE_ACCESS.ADMIN;
 
-      if (!isAdmin && ticket.handlerId !== userId) {
+      const isAdmin =
+        hasRole(
+          currentUser.role?.code,
+          adminRoles
+        );
+
+      if (
+        !isAdmin &&
+        ticket.handlerId !== userId
+      ) {
         set.status = 403;
 
         return {
@@ -789,7 +766,10 @@ export const ticketController = {
       return {
         success: false,
         message:
-          safeErrorMessage(error, "Ticket tidak ditemukan."),
+          safeErrorMessage(
+            error,
+            "Ticket tidak ditemukan."
+          ),
       };
     }
   },
@@ -798,18 +778,14 @@ export const ticketController = {
     context: any
   ) {
     const {
-      user,
       params,
       body,
+      currentUser,
       set,
     } = context;
 
     try {
-      const actingUserId =
-        getAuthenticatedUserId(user);
-
-      const ticketId =
-        Number(params.id);
+      const ticketId = Number(params.id);
 
       if (
         Number.isNaN(ticketId) ||
@@ -819,35 +795,16 @@ export const ticketController = {
 
         return {
           success: false,
-          message:
-            "ID ticket tidak valid.",
+          message: "ID ticket tidak valid.",
         };
       }
-
-      const currentUser =
-        await prisma.user.findUnique({
-          where: {
-            id: actingUserId,
-          },
-
-          select: {
-            isActive: true,
-
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        });
 
       if (!currentUser) {
         set.status = 401;
 
         return {
           success: false,
-          message:
-            "Pengguna tidak ditemukan.",
+          message: "Pengguna tidak ditemukan.",
         };
       }
 
@@ -856,31 +813,52 @@ export const ticketController = {
 
         return {
           success: false,
-          message:
-            "Akun Anda sedang tidak aktif.",
+          message: "Akun Anda sedang tidak aktif.",
         };
       }
 
-      const roleName =
-        currentUser.role.name
-          .trim()
-          .toUpperCase();
-
-      const isAdmin =
-        ROLE_GROUPS.ADMIN.includes(roleName);
+      const actingUserId =
+        Number(currentUser.id);
 
       if (
-        !ROLE_GROUPS.ADMIN_OR_IT_HELPDESK.includes(
-          roleName
+        Number.isNaN(actingUserId) ||
+        actingUserId <= 0
+      ) {
+        set.status = 401;
+
+        return {
+          success: false,
+          message:
+            "Data pengguna login tidak valid.",
+        };
+      }
+
+      const allowedRoles: readonly string[] =
+        ROLE_ACCESS.ADMIN_OR_IT_HELPDESK;
+
+      if (
+        !hasRole(
+          currentUser.role?.code,
+          allowedRoles
         )
       ) {
         set.status = 403;
+
         return {
           success: false,
           message:
             "Hanya IT HelpDesk atau Admin yang dapat memperbarui ticket.",
         };
       }
+
+      const adminRoles: readonly string[] =
+        ROLE_ACCESS.ADMIN;
+
+      const isAdmin =
+        hasRole(
+          currentUser.role?.code,
+          adminRoles
+        );
 
       const priority =
         body.priority !== undefined
@@ -1149,41 +1127,37 @@ export const ticketController = {
     context: any
   ) {
     const {
-      user,
+      currentUser,
       set,
     } = context;
 
     try {
-      const adminId =
-        getAuthenticatedUserId(user);
+      if (!currentUser) {
+        set.status = 401;
 
-      const currentUser =
-        await prisma.user.findUnique({
-          where: {
-            id: adminId,
-          },
+        return {
+          success: false,
+          message: "Pengguna tidak ditemukan.",
+        };
+      }
 
-          select: {
-            isActive: true,
+      if (!currentUser.isActive) {
+        set.status = 403;
 
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        });
+        return {
+          success: false,
+          message: "Akun Anda sedang tidak aktif.",
+        };
+      }
 
-      const roleName = String(
-        currentUser?.role?.name || ""
-      )
-        .trim()
-        .toUpperCase();
+      const adminRoles: readonly string[] =
+        ROLE_ACCESS.ADMIN;
 
       if (
-        !currentUser ||
-        !currentUser.isActive ||
-        !ROLE_GROUPS.ADMIN.includes(roleName)
+        !hasRole(
+          currentUser.role?.code,
+          adminRoles
+        )
       ) {
         set.status = 403;
 
@@ -1200,7 +1174,7 @@ export const ticketController = {
             isActive: true,
 
             role: {
-              name: ROLE_NAME_IT_HELPDESK,
+              code: ROLE_CODES.IT_HELPDESK,
             },
           },
 
@@ -1242,7 +1216,10 @@ export const ticketController = {
       return {
         success: false,
         message:
-          safeErrorMessage(error, "Gagal mengambil daftar IT HelpDesk."),
+          safeErrorMessage(
+            error,
+            "Gagal mengambil daftar IT HelpDesk."
+          ),
       };
     }
   },
