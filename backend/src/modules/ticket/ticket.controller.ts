@@ -1348,7 +1348,7 @@ export const ticketController = {
       set.headers[
         "Content-Disposition"
       ] =
-        `inline; filename="${encodeURIComponent(
+        `attachment; filename="${encodeURIComponent(
           file.fileName
         )}"`;
 
