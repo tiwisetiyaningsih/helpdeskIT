@@ -12,7 +12,7 @@ function setRefreshCookie(cookie: any, value: string) {
     value,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "lax",
     path: "/",
     maxAge: REFRESH_COOKIE_MAX_AGE,
   });
