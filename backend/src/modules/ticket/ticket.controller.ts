@@ -5,6 +5,7 @@ import {
   ROLE_GROUPS,
   ROLE_NAME_IT_HELPDESK,
 } from "../../middleware/permission";
+import { safeErrorMessage } from "../../utils/errorMessage";
 
 
 type AuthenticatedUser = {
@@ -208,9 +209,7 @@ export const ticketController = {
       return {
         success: false,
         message:
-          error instanceof Error
-            ? error.message
-            : "Gagal membuat keluhan.",
+          safeErrorMessage(error, "Gagal membuat keluhan."),
       };
     }
   },
@@ -290,9 +289,7 @@ export const ticketController = {
       return {
         success: false,
         message:
-          error instanceof Error
-            ? error.message
-            : "Gagal mengambil data ticket.",
+          safeErrorMessage(error, "Gagal mengambil data ticket."),
       };
     }
   },
@@ -511,9 +508,7 @@ export const ticketController = {
       );
 
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal menugaskan ticket.";
+        safeErrorMessage(error, "Gagal menugaskan ticket.");
 
       if (
         message.includes(
@@ -574,9 +569,7 @@ export const ticketController = {
       return {
         success: false,
         message:
-          error instanceof Error
-            ? error.message
-            : "Gagal mengambil ticket.",
+          safeErrorMessage(error, "Gagal mengambil ticket."),
       };
     }
   },
@@ -671,9 +664,7 @@ export const ticketController = {
       );
 
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal mengambil ticket.";
+        safeErrorMessage(error, "Gagal mengambil ticket.");
 
       if (
         message.includes(
@@ -786,9 +777,7 @@ export const ticketController = {
       return {
         success: false,
         message:
-          error instanceof Error
-            ? error.message
-            : "Ticket tidak ditemukan.",
+          safeErrorMessage(error, "Ticket tidak ditemukan."),
       };
     }
   },
@@ -1116,9 +1105,7 @@ export const ticketController = {
       );
 
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal memperbarui ticket.";
+        safeErrorMessage(error, "Gagal memperbarui ticket.");
 
       if (
         message.includes(
@@ -1243,9 +1230,7 @@ export const ticketController = {
       return {
         success: false,
         message:
-          error instanceof Error
-            ? error.message
-            : "Gagal mengambil daftar IT HelpDesk.",
+          safeErrorMessage(error, "Gagal mengambil daftar IT HelpDesk."),
       };
     }
   },
@@ -1302,9 +1287,7 @@ export const ticketController = {
       return {
         success: false,
         message:
-          error instanceof Error
-            ? error.message
-            : "Ticket tidak ditemukan.",
+          safeErrorMessage(error, "Ticket tidak ditemukan."),
       };
     }
   },
@@ -1369,9 +1352,7 @@ export const ticketController = {
       return {
         success: false,
         message:
-          error instanceof Error
-            ? error.message
-            : "Evidence tidak ditemukan.",
+          safeErrorMessage(error, "Evidence tidak ditemukan."),
       };
     }
   },

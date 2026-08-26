@@ -1,4 +1,5 @@
 import { userService } from "./user.service";
+import { safeErrorMessage } from "../../utils/errorMessage";
 import { getRoleErrorStatus } from "../../middleware/permission";
 
 
@@ -22,9 +23,7 @@ export const userController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal mengambil data user.";
+        safeErrorMessage(error, "Gagal mengambil data user.");
 
       console.error(error);
 
@@ -68,9 +67,7 @@ export const userController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal mengambil detail user.";
+        safeErrorMessage(error, "Gagal mengambil detail user.");
 
       console.error(error);
 
@@ -93,9 +90,7 @@ export const userController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal mengambil pilihan employee dan role.";
+        safeErrorMessage(error, "Gagal mengambil pilihan employee dan role.");
 
       console.error(error);
 
@@ -185,9 +180,7 @@ export const userController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal menambahkan user.";
+        safeErrorMessage(error, "Gagal menambahkan user.");
 
       console.error(error);
 
@@ -289,9 +282,7 @@ export const userController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal memperbarui user.";
+        safeErrorMessage(error, "Gagal memperbarui user.");
 
       console.error(error);
 
@@ -326,9 +317,7 @@ export const userController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal menghapus user.";
+        safeErrorMessage(error, "Gagal menghapus user.");
 
       console.error(error);
 

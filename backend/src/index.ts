@@ -46,6 +46,23 @@ app.use(userRoute);
 app.use(ticketRoute);
 app.use(roleRoute);
 
+app.onError(({ code, error, set }) => {
+  console.error("Unhandled error:", error);
+
+  if (code === "VALIDATION") {
+    set.status = 400;
+    return { success: false, message: "Data yang dikirim tidak valid." };
+  }
+
+  if (code === "NOT_FOUND") {
+    set.status = 404;
+    return { success: false, message: "Endpoint tidak ditemukan." };
+  }
+
+  set.status = 500;
+  return { success: false, message: "Terjadi kesalahan pada server." };
+});
+
 app.listen(3000);
 
 console.log(

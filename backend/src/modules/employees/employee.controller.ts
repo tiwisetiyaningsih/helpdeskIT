@@ -1,5 +1,6 @@
 import { employeeService } from "./employee.service";
 import { getRoleErrorStatus } from "../../middleware/permission";
+import { safeErrorMessage } from "../../utils/errorMessage";
 
 
 export const employeeController = {
@@ -8,9 +9,7 @@ export const employeeController = {
       return await employeeService.getAll();
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal mengambil data employee";
+        safeErrorMessage(error, "Gagal mengambil data employee");
 
       console.error("Get employees error:", error);
 
@@ -34,9 +33,7 @@ export const employeeController = {
       return result;
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal mengambil detail employee";
+        safeErrorMessage(error, "Gagal mengambil detail employee");
 
       console.error("Get employee error:", error);
 
@@ -62,9 +59,7 @@ export const employeeController = {
       return result;
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal menambahkan employee";
+        safeErrorMessage(error, "Gagal menambahkan employee");
 
       console.error("Create employee error:", error);
 
@@ -92,9 +87,7 @@ export const employeeController = {
       return result;
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal memperbarui employee";
+        safeErrorMessage(error, "Gagal memperbarui employee");
 
       console.error("Update employee error:", error);
 
@@ -119,9 +112,7 @@ export const employeeController = {
       return result;
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal menghapus employee";
+        safeErrorMessage(error, "Gagal menghapus employee");
 
       console.error("Delete employee error:", error);
 

@@ -1,5 +1,6 @@
 import { roleService } from "./role.service";
 import { getRoleErrorStatus } from "../../middleware/permission";
+import { safeErrorMessage } from "../../utils/errorMessage";
 
 export const roleController = {
   async getAll({ user, set }: any) {
@@ -12,7 +13,7 @@ export const roleController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Gagal mengambil data role.";
+        safeErrorMessage(error, "Gagal mengambil data role.");
 
       console.error("GET ROLES ERROR:", error);
 
@@ -46,9 +47,7 @@ export const roleController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal mengambil detail role.";
+        safeErrorMessage(error, "Gagal mengambil detail role.");
 
       console.error("GET ROLE DETAIL ERROR:", error);
 
@@ -77,7 +76,7 @@ export const roleController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Gagal menambahkan role.";
+        safeErrorMessage(error, "Gagal menambahkan role.");
 
       console.error("CREATE ROLE ERROR:", error);
 
@@ -116,7 +115,7 @@ export const roleController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Gagal memperbarui role.";
+        safeErrorMessage(error, "Gagal memperbarui role.");
 
       console.error("UPDATE ROLE ERROR:", error);
 
@@ -152,7 +151,7 @@ export const roleController = {
       };
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Gagal menghapus role.";
+        safeErrorMessage(error, "Gagal menghapus role.");
 
       console.error("DELETE ROLE ERROR:", error);
 
