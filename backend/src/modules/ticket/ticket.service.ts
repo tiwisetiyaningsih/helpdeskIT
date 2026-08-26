@@ -12,6 +12,11 @@ import {
   MINIO_BUCKET,
 } from "../../config/minio";
 
+import {
+  detectRealMimeType,
+  MAX_EVIDENCE_FILE_SIZE,
+} from "../../utils/fileValidation";
+
 type CreateTicketInput = {
   reporterId: number;
   keluhan: string;
@@ -60,6 +65,26 @@ async function uploadEvidence(
   reporterId: number,
   file: File
 ) {
+  if (file.size > MAX_EVIDENCE_FILE_SIZE) {
+    throw new Error(
+      "Ukuran file evidence maksimal 5 MB."
+    );
+  }
+
+  const arrayBuffer =
+    await file.arrayBuffer();
+
+  const buffer =
+    Buffer.from(arrayBuffer);
+
+  const realMimeType = detectRealMimeType(buffer);
+
+  if (!realMimeType) {
+    throw new Error(
+      "Jenis file evidence tidak didukung. Hanya JPG, PNG, atau PDF."
+    );
+  }
+
   await ensureMinioBucket();
 
   const safeOriginalName =
@@ -74,23 +99,13 @@ async function uploadEvidence(
   const objectName =
     `tickets/${ticketId}/${generatedName}`;
 
-  const arrayBuffer =
-    await file.arrayBuffer();
-
-  const buffer =
-    Buffer.from(arrayBuffer);
-
-  const mimeType =
-    file.type ||
-    "application/octet-stream";
-
   await minioClient.putObject(
     MINIO_BUCKET,
     objectName,
     buffer,
     buffer.length,
     {
-      "Content-Type": mimeType,
+      "Content-Type": realMimeType,
     }
   );
 
@@ -101,7 +116,7 @@ async function uploadEvidence(
       originalName: file.name,
       objectName,
       bucketName: MINIO_BUCKET,
-      mimeType,
+      mimeType: realMimeType,
       fileSize: file.size,
       uploadedById: reporterId,
     },
