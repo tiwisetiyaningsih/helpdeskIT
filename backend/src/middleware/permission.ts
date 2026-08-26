@@ -1,6 +1,6 @@
 import { prisma } from "../config/prisma";
 import { Elysia } from "elysia";
-
+import { getCachedRole, setCachedRole } from "../utils/roleCache";
 
 export const ROLE_GROUPS: Record<string, string[]> = {
   ADMIN: ["ADMIN", "ADMINISTRATOR"],
@@ -32,36 +32,43 @@ export async function ensureRole(
 ) {
   const userId = getAuthenticatedUserId(user);
 
-  const currentUser = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      isActive: true,
-      role: { select: { name: true } },
-    },
-  });
+  let cached = getCachedRole(userId);
 
-  if (!currentUser) {
-    throw new Error("Pengguna tidak ditemukan.");
+  if (!cached) {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        isActive: true,
+        role: { select: { name: true } },
+      },
+    });
+
+    if (!currentUser) {
+      throw new Error("Pengguna tidak ditemukan.");
+    }
+
+    const roleName = String(currentUser.role?.name || "")
+      .trim()
+      .toUpperCase();
+
+    setCachedRole(userId, currentUser.isActive, roleName);
+    cached = { isActive: currentUser.isActive, roleName, expiresAt: 0 };
   }
 
-  if (!currentUser.isActive) {
+  if (!cached.isActive) {
     throw new Error("Akun pengguna sedang tidak aktif.");
   }
-
-  const roleName = String(currentUser.role?.name || "")
-    .trim()
-    .toUpperCase();
 
   const normalizedAllowed = allowedRoles.map((role) =>
     role.trim().toUpperCase()
   );
 
-  if (!normalizedAllowed.includes(roleName)) {
+  if (!normalizedAllowed.includes(cached.roleName)) {
     throw new Error("Anda tidak memiliki akses untuk aksi ini.");
   }
 
-  return currentUser;
+  return { id: userId, isActive: cached.isActive, role: { name: cached.roleName } };
 }
 
 /** Konversi pesan Error dari ensureRole() menjadi HTTP status yang sesuai. */
