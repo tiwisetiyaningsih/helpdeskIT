@@ -296,11 +296,11 @@ export const ticketController = {
 
   async assignTicketByAdmin(context: any) {
     const {
-  params,
-  user,
-  body,
-  set,
-} = context;
+      params,
+      user,
+      body,
+      set,
+    } = context;
 
     try {
       const adminId =
@@ -761,6 +761,18 @@ export const ticketController = {
         await ticketService.getTicketDetail(
           ticketId
         );
+
+      const isAdmin = ROLE_GROUPS.ADMIN.includes(roleName);
+
+      if (!isAdmin && ticket.handlerId !== userId) {
+        set.status = 403;
+
+        return {
+          success: false,
+          message:
+            "Anda tidak memiliki akses ke detail ticket ini.",
+        };
+      }
 
       return {
         success: true,
