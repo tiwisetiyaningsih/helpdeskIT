@@ -10,7 +10,7 @@ COPY . .
 
 RUN bunx prisma generate
 
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+RUN groupadd --system appgroup && useradd --system --gid appgroup appuser
 COPY --chown=appuser:appgroup docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 RUN chown -R appuser:appgroup /app
