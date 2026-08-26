@@ -3,7 +3,7 @@ import { ROLE_GROUPS } from "../../middleware/permission";
 
 const DEFAULT_ROLES = [
   ...ROLE_GROUPS.ADMIN,
-  "IT HELPDESK",
+  ...ROLE_GROUPS.IT_HELPDESK,
   "EMPLOYEE",
 ];
 
