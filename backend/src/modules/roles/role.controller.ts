@@ -1,6 +1,7 @@
 import { roleService } from "./role.service";
 import { getRoleErrorStatus } from "../../middleware/permission";
 import { safeErrorMessage } from "../../utils/errorMessage";
+import { recordAuditLog } from "../../utils/auditLog";
 
 export const roleController = {
   async getAll({ user, set }: any) {
@@ -69,6 +70,15 @@ export const roleController = {
 
       set.status = 201;
 
+      await recordAuditLog({
+        actorId: user?.id ?? null,
+        actorEmail: user?.email ?? null,
+        action: "ROLE_CREATE",
+        targetType: "Role",
+        targetId: role.id,
+        metadata: { name: role.name },
+      });
+
       return {
         success: true,
         message: "Role berhasil ditambahkan.",
@@ -108,6 +118,15 @@ export const roleController = {
         description: body.description ? String(body.description) : null,
       });
 
+      await recordAuditLog({
+        actorId: user?.id ?? null,
+        actorEmail: user?.email ?? null,
+        action: "ROLE_UPDATE",
+        targetType: "Role",
+        targetId: roleId,
+        metadata: { name: role.name },
+      });
+
       return {
         success: true,
         message: "Role berhasil diperbarui.",
@@ -143,6 +162,14 @@ export const roleController = {
       }
 
       const role = await roleService.remove(roleId);
+
+      await recordAuditLog({
+        actorId: user?.id ?? null,
+        actorEmail: user?.email ?? null,
+        action: "ROLE_DELETE",
+        targetType: "Role",
+        targetId: roleId,
+      });
 
       return {
         success: true,

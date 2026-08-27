@@ -67,7 +67,7 @@ export const authService = {
       };
     }
 
-    const hashedPassword = await bcrypt.hash(body.password, 10);
+    const hashedPassword = await bcrypt.hash(body.password, 12);
 
         const user = await authRepository.createUser({
       employeeId: employee.id,

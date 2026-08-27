@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
-
+import { logger } from "./utils/logger";
 import { jwtPlugin } from "./plugins/jwt";
 import { authRoute } from "./modules/auth/auth.route";
 import { employeeRoute } from "./modules/employees/employee.route";
@@ -9,6 +9,17 @@ import { ticketRoute } from "./modules/ticket/ticket.route";
 import { roleRoute } from "./modules/roles/role.route";
 
 const app = new Elysia();
+
+app.derive({ as: "scoped" }, () => ({
+  requestId: crypto.randomUUID(),
+}));
+
+app.onAfterHandle(({ request, requestId, set }: any) => {
+  logger.info(
+    { requestId, method: request.method, path: new URL(request.url).pathname, status: set.status },
+    "request handled"
+  );
+});
 
 function applySecurityHeaders(set: any) {
   set.headers["X-Content-Type-Options"] = "nosniff";
@@ -66,7 +77,7 @@ app.use(ticketRoute);
 app.use(roleRoute);
 
 app.onError(({ code, error, set }) => {
-  console.error("Unhandled error:", error);
+  logger.error({ err: error, code }, "unhandled error");
   applySecurityHeaders(set);
 
   if (code === "VALIDATION") {

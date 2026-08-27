@@ -1,6 +1,7 @@
 import { userService } from "./user.service";
 import { safeErrorMessage } from "../../utils/errorMessage";
 import { getRoleErrorStatus } from "../../middleware/permission";
+import { recordAuditLog } from "../../utils/auditLog";
 
 
 type UserBody = {
@@ -171,6 +172,17 @@ export const userController = {
         isActive: body.isActive ?? true,
       });
 
+      await recordAuditLog({
+        actorId: authUser?.id ?? null,
+        actorEmail: authUser?.email ?? null,
+        action: "USER_CREATE",
+        targetType: "User",
+        targetId: user.id,
+        metadata: { email: user.email, roleId: user.roleId },
+      });
+
+      set.status = 201;
+
       set.status = 201;
 
       return {
@@ -275,6 +287,19 @@ export const userController = {
         isActive: body.isActive,
       });
 
+      await recordAuditLog({
+        actorId: authUser?.id ?? null,
+        actorEmail: authUser?.email ?? null,
+        action: "USER_UPDATE",
+        targetType: "User",
+        targetId: id,
+        metadata: {
+          roleChanged: roleId !== undefined,
+          passwordChanged: body.password !== undefined && body.password !== "",
+          isActive: body.isActive,
+        },
+      });
+
       return {
         success: true,
         message: "User berhasil diperbarui.",
@@ -310,6 +335,14 @@ export const userController = {
       }
 
       await userService.delete(id);
+
+      await recordAuditLog({
+        actorId: authUser?.id ?? null,
+        actorEmail: authUser?.email ?? null,
+        action: "USER_DELETE",
+        targetType: "User",
+        targetId: id,
+      });
 
       return {
         success: true,

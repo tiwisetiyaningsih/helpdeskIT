@@ -1,5 +1,6 @@
 import { prisma } from "../../config/prisma";
 import { authRepository } from "../auth/auth.repository";
+import bcrypt from "bcrypt";
 
 type CreateUserInput = {
   employeeId: number;
@@ -146,10 +147,7 @@ export const userService = {
     if (!role) {
       throw new Error("Role tidak ditemukan.");
     }
-    const hashedPassword = await Bun.password.hash(data.password, {
-      algorithm: "bcrypt",
-      cost: 10,
-    });
+    const hashedPassword = await bcrypt.hash(data.password, 12);
     return prisma.user.create({
       data: {
         employeeId: data.employeeId,
@@ -231,10 +229,7 @@ export const userService = {
     }
     let hashedPassword: string | undefined;
     if (data.password?.trim()) {
-      hashedPassword = await Bun.password.hash(data.password, {
-        algorithm: "bcrypt",
-        cost: 10,
-      });
+      hashedPassword = await bcrypt.hash(data.password, 12);
     }
     const updatedUser = await prisma.user.update({
       where: { id },

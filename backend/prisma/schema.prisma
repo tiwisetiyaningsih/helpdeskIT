@@ -169,3 +169,23 @@ model RefreshToken {
 
   @@index([userId])
 }
+
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+
+  actorId    Int?
+  actorEmail String?
+
+  action     String   
+  targetType String  
+  targetId   String?
+
+  metadata   Json?  
+
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}

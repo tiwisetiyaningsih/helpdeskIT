@@ -9,7 +9,7 @@ import React, {
 } from "react";
 
 const API_URL =
-  "http://localhost:3001";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 type Role = {
   id: number;
@@ -155,19 +155,6 @@ export default function RoleManagement() {
       async (
         showLoading = false
       ) => {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
-        if (!token) {
-          setError(
-            "Sesi login tidak ditemukan."
-          );
-
-          setLoading(false);
-          return;
-        }
 
         try {
           if (showLoading) {
@@ -181,17 +168,12 @@ export default function RoleManagement() {
                 method: "GET",
 
                 headers: {
-                  Authorization:
-                    `Bearer ${token}`,
-
-                  Accept:
-                    "application/json",
+                  Accept: "application/json",
                 },
 
                 cache: "no-store",
               }
             );
-
           const data =
             await parseJson<RoleResponse>(
               response
@@ -367,19 +349,6 @@ export default function RoleManagement() {
       return;
     }
 
-    const token =
-      localStorage.getItem(
-        "token"
-      );
-
-    if (!token) {
-      setFormError(
-        "Sesi login tidak ditemukan."
-      );
-
-      return;
-    }
-
     try {
       setSaving(true);
       setFormError("");
@@ -400,14 +369,8 @@ export default function RoleManagement() {
                 : "POST",
 
             headers: {
-              Authorization:
-                `Bearer ${token}`,
-
-              "Content-Type":
-                "application/json",
-
-              Accept:
-                "application/json",
+              "Content-Type": "application/json",
+              Accept: "application/json",
             },
 
             body: JSON.stringify({
@@ -465,19 +428,6 @@ export default function RoleManagement() {
       return;
     }
 
-    const token =
-      localStorage.getItem(
-        "token"
-      );
-
-    if (!token) {
-      setError(
-        "Sesi login tidak ditemukan."
-      );
-
-      return;
-    }
-
     try {
       setDeleting(true);
 
@@ -488,11 +438,7 @@ export default function RoleManagement() {
             method: "DELETE",
 
             headers: {
-              Authorization:
-                `Bearer ${token}`,
-
-              Accept:
-                "application/json",
+              Accept: "application/json",
             },
           }
         );
@@ -786,34 +732,34 @@ export default function RoleManagement() {
                           </td>
 
                           <td className="px-4 py-4">
-  <div className="flex items-center justify-center gap-2">
-    {/* Detail */}
-    <ActionButton
-      title="Lihat detail"
-      onClick={() => setDetailRole(role)}
-      variant="view"
-      icon={<EyeIcon />}
-    />
+                            <div className="flex items-center justify-center gap-2">
+                              {/* Detail */}
+                              <ActionButton
+                                title="Lihat detail"
+                                onClick={() => setDetailRole(role)}
+                                variant="view"
+                                icon={<EyeIcon />}
+                              />
 
-    {/* Edit */}
-    <ActionButton
-      title="Edit role"
-      onClick={() => openEditModal(role)}
-      variant="edit"
-      icon={<EditIcon />}
-    />
+                              {/* Edit */}
+                              <ActionButton
+                                title="Edit role"
+                                onClick={() => openEditModal(role)}
+                                variant="edit"
+                                icon={<EditIcon />}
+                              />
 
-    {/* Hapus - hanya role tambahan */}
-    {!role.isDefault && (
-      <ActionButton
-        title="Hapus role"
-        onClick={() => setDeleteRole(role)}
-        variant="delete"
-        icon={<TrashIcon />}
-      />
-    )}
-  </div>
-</td>
+                              {/* Hapus - hanya role tambahan */}
+                              {!role.isDefault && (
+                                <ActionButton
+                                  title="Hapus role"
+                                  onClick={() => setDeleteRole(role)}
+                                  variant="delete"
+                                  icon={<TrashIcon />}
+                                />
+                              )}
+                            </div>
+                          </td>
                         </tr>
                       )
                     )}
@@ -844,8 +790,8 @@ export default function RoleManagement() {
 
                             <span
                               className={`shrink-0 rounded-full px-2.5 py-1 text-theme-xs font-medium ${role.isDefault
-                                  ? "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400"
-                                  : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                                ? "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400"
+                                : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
                                 }`}
                             >
                               {role.isDefault
@@ -877,8 +823,8 @@ export default function RoleManagement() {
 
                       <div
                         className={`mt-4 grid gap-2 ${role.isDefault
-                            ? "grid-cols-2"
-                            : "grid-cols-3"
+                          ? "grid-cols-2"
+                          : "grid-cols-3"
                           }`}
                       >
                         <button
@@ -1175,8 +1121,8 @@ function RoleDetailModal({
 
               <span
                 className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-theme-xs font-medium ${role.isDefault
-                    ? "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400"
-                    : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                  ? "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400"
+                  : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
                   }`}
               >
                 {role.isDefault

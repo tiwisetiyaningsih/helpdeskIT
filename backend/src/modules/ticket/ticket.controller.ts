@@ -182,17 +182,6 @@ export const ticketController = {
           ? body.evidence
           : undefined;
 
-      console.log(
-        "Evidence diterima:",
-        evidence
-          ? {
-            name: evidence.name,
-            type: evidence.type,
-            size: evidence.size,
-          }
-          : null
-      );
-
       const ticket =
         await ticketService.create({
           reporterId,
