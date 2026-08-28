@@ -620,6 +620,14 @@ export const ticketController = {
           handlerId
         );
 
+      await recordAuditLog({
+        actorId: currentUser?.id ?? null,
+        actorEmail: currentUser?.email ?? null,
+        action: "TICKET_START_WORK",
+        targetType: "Ticket",
+        targetId: ticketId,
+      });
+
       return {
         success: true,
         message: "Ticket berhasil diambil.",
