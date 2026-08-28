@@ -123,22 +123,6 @@ export const userService = {
     if (!employee) {
       throw new Error("Employee tidak ditemukan.");
     }
-    const employeeUser = await prisma.user.findUnique({
-      where: {
-        employeeId: data.employeeId,
-      },
-    });
-    if (employeeUser) {
-      throw new Error("Employee tersebut sudah memiliki akun user.");
-    }
-    const emailExists = await prisma.user.findUnique({
-      where: {
-        email: data.email.toLowerCase().trim(),
-      },
-    });
-    if (emailExists) {
-      throw new Error("Email sudah digunakan.");
-    }
     const role = await prisma.role.findUnique({
       where: {
         id: data.roleId,
@@ -148,36 +132,55 @@ export const userService = {
       throw new Error("Role tidak ditemukan.");
     }
     const hashedPassword = await bcrypt.hash(data.password, 12);
-    return prisma.user.create({
-      data: {
-        employeeId: data.employeeId,
-        email: data.email.toLowerCase().trim(),
-        password: hashedPassword,
-        roleId: data.roleId,
-        isActive: data.isActive ?? true,
-      },
-      select: {
-        id: true,
-        employeeId: true,
-        email: true,
-        roleId: true,
-        isActive: true,
-        employee: {
-          select: {
-            id: true,
-            nik: true,
-            nama: true,
+
+    try {
+      return await prisma.user.create({
+        data: {
+          employeeId: data.employeeId,
+          email: data.email.toLowerCase().trim(),
+          password: hashedPassword,
+          roleId: data.roleId,
+          isActive: data.isActive ?? true,
+        },
+        select: {
+          id: true,
+          employeeId: true,
+          email: true,
+          roleId: true,
+          isActive: true,
+          employee: {
+            select: {
+              id: true,
+              nik: true,
+              nama: true,
+            },
+          },
+          role: {
+            select: {
+              id: true,
+              name: true,
+            },
           },
         },
-        role: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
+      });
+    } catch (error: any) {
+      if (error?.code === "P2002") {
+        const target = Array.isArray(error.meta?.target)
+          ? error.meta.target.join(",")
+          : String(error.meta?.target ?? "");
+
+        if (target.includes("employeeId")) {
+          throw new Error("Employee tersebut sudah memiliki akun user.");
+        }
+        if (target.includes("email")) {
+          throw new Error("Email sudah digunakan.");
+        }
+        throw new Error("Data yang dimasukkan sudah digunakan.");
+      }
+      throw error;
+    }
   },
+
   async update(id: number, data: UpdateUserInput) {
     const currentUser = await prisma.user.findUnique({
       where: { id },

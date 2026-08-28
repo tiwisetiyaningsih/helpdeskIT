@@ -1,6 +1,7 @@
 import { prisma } from "../../config/prisma";
 import { ticketService } from "./ticket.service";
 import { TicketStatus } from "@prisma/client";
+import { recordAuditLog } from "../../utils/auditLog";
 import {
   ROLE_ACCESS,
   ROLE_CODES,
@@ -451,6 +452,15 @@ export const ticketController = {
               ) ?? null,
           }
         );
+
+      await recordAuditLog({
+        actorId: currentUser?.id ?? null,
+        actorEmail: currentUser?.email ?? null,
+        action: "TICKET_ASSIGN",
+        targetType: "Ticket",
+        targetId: ticketId,
+        metadata: { handlerId },
+      });
 
       return {
         success: true,
@@ -1067,6 +1077,15 @@ export const ticketController = {
                 ),
             }
           );
+
+      await recordAuditLog({
+        actorId: currentUser?.id ?? null,
+        actorEmail: currentUser?.email ?? null,
+        action: "TICKET_PROGRESS_UPDATE",
+        targetType: "Ticket",
+        targetId: ticketId,
+        metadata: { status },
+      });
 
       return {
         success: true,

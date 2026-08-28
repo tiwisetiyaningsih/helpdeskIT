@@ -1,7 +1,7 @@
 import { employeeService } from "./employee.service";
 import { getRoleErrorStatus } from "../../middleware/permission";
 import { safeErrorMessage } from "../../utils/errorMessage";
-
+import { recordAuditLog } from "../../utils/auditLog";
 
 export const employeeController = {
   async getAll({ user: authUser, set }: any) {
@@ -54,6 +54,15 @@ export const employeeController = {
         set.status = result.status ?? 400;
       } else {
         set.status = 201;
+
+        await recordAuditLog({
+          actorId: authUser?.id ?? null,
+          actorEmail: authUser?.email ?? null,
+          action: "EMPLOYEE_CREATE",
+          targetType: "Employee",
+          targetId: result.data?.id ?? null,
+          metadata: { nik: result.data?.nik, nama: result.data?.nama },
+        });
       }
 
       return result;
@@ -82,6 +91,15 @@ export const employeeController = {
 
       if (!result.success) {
         set.status = result.status ?? 400;
+      } else {
+        await recordAuditLog({
+          actorId: authUser?.id ?? null,
+          actorEmail: authUser?.email ?? null,
+          action: "EMPLOYEE_UPDATE",
+          targetType: "Employee",
+          targetId: params.id,
+          metadata: { fields: Object.keys(body ?? {}) },
+        });
       }
 
       return result;
@@ -107,6 +125,14 @@ export const employeeController = {
 
       if (!result.success) {
         set.status = result.status ?? 400;
+      } else {
+        await recordAuditLog({
+          actorId: authUser?.id ?? null,
+          actorEmail: authUser?.email ?? null,
+          action: "EMPLOYEE_DELETE",
+          targetType: "Employee",
+          targetId: params.id,
+        });
       }
 
       return result;
@@ -126,12 +152,20 @@ export const employeeController = {
     }
   },
 
-  
-  async generateRegistrationToken({ params, set }: any) {
+
+  async generateRegistrationToken({ params, user: authUser, set }: any) {
     const result = await employeeService.generateRegistrationToken(Number(params.id));
 
     if (!result.success) {
       set.status = result.status;
+    } else {
+      await recordAuditLog({
+        actorId: authUser?.id ?? null,
+        actorEmail: authUser?.email ?? null,
+        action: "EMPLOYEE_REGISTRATION_TOKEN_GENERATE",
+        targetType: "Employee",
+        targetId: params.id,
+      });
     }
 
     return result;
