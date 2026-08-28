@@ -51,24 +51,8 @@ async function downloadEvidence(
   fileUrl: string,
   fileName: string
 ) {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("token")
-      : null;
-
-  if (!token) {
-    alert(
-      "Sesi login tidak ditemukan. Silakan login kembali."
-    );
-    return;
-  }
-
   try {
-    const response = await apiFetch(fileUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await apiFetch(fileUrl);
 
     if (!response.ok) {
       throw new Error(

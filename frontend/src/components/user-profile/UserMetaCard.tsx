@@ -3,6 +3,9 @@
 import { apiFetch } from "@/lib/apiFetch";
 import React, { useEffect, useState } from "react";
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
 type ProfileUser = {
   id?: number;
   name?: string;
@@ -27,22 +30,11 @@ export default function UserMetaCard() {
 
   useEffect(() => {
     async function getProfile() {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setError("Sesi login tidak ditemukan.");
-        setLoading(false);
-        return;
-      }
-
       try {
         const response = await apiFetch(
-          "http://localhost:3001/auth/me",
+          `${API_URL}/auth/me`,
           {
             method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
           }
         );
 

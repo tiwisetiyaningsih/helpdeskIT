@@ -163,21 +163,12 @@ export default function EditProfileModal({
         throw new Error("Unit kerja wajib dipilih.");
       }
 
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        throw new Error(
-          "Sesi login tidak ditemukan. Silakan login kembali."
-        );
-      }
-
       const response = await apiFetch(
         `${API_URL}/auth/profile`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
           body: JSON.stringify({

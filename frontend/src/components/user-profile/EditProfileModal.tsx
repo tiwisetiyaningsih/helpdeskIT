@@ -1,6 +1,9 @@
 "use client";
 
 import { apiFetch } from "@/lib/apiFetch";
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 import {
   FormEvent,
   useEffect,
@@ -127,22 +130,12 @@ export default function EditProfileModal({
         throw new Error("Unit kerja wajib dipilih.");
       }
 
-      const token =
-        localStorage.getItem("token");
-
-      if (!token) {
-        throw new Error(
-          "Sesi login tidak ditemukan."
-        );
-      }
-
       const response = await apiFetch(
-        "http://localhost:3001/auth/profile",
+        `${API_URL}/auth/profile`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             nama,

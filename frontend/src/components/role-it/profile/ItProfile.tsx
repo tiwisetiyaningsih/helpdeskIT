@@ -58,13 +58,6 @@ export default function UserProfile() {
   const [error, setError] = useState("");
 
   const getProfile = useCallback(async () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      router.replace("/signin");
-      return;
-    }
-
     try {
       setLoading(true);
       setError("");
@@ -72,7 +65,6 @@ export default function UserProfile() {
       const response = await apiFetch(`${API_URL}/auth/me`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
       });

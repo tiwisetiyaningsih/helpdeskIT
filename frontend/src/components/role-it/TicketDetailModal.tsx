@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 
 import type { Ticket } from "@/services/ticket.service";
 import TicketDetail from "./TicketDetail";
+import { apiFetch } from "@/lib/apiFetch";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -369,14 +370,6 @@ export default function TicketAnalysisManagement() {
 
   const loadData = useCallback(
     async (showLoading = false) => {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setError("Sesi login tidak ditemukan.");
-        setLoading(false);
-        return;
-      }
-
       try {
         if (showLoading) {
           setLoading(true);
@@ -384,16 +377,14 @@ export default function TicketAnalysisManagement() {
 
         const [ticketResponse, meResponse] =
           await Promise.all([
-            fetch(`${API_URL}/tickets`, {
+            apiFetch(`${API_URL}/tickets`, {
               headers: {
-                Authorization: `Bearer ${token}`,
                 Accept: "application/json",
               },
               cache: "no-store",
             }),
-            fetch(`${API_URL}/auth/me`, {
+            apiFetch(`${API_URL}/auth/me`, {
               headers: {
-                Authorization: `Bearer ${token}`,
                 Accept: "application/json",
               },
               cache: "no-store",
@@ -618,23 +609,15 @@ export default function TicketAnalysisManagement() {
       return;
     }
 
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setFormError("Sesi login tidak ditemukan.");
-      return;
-    }
-
     try {
       setSaving(true);
       setFormError("");
 
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/tickets/${analysisTicket.id}/progress`,
         {
           method: "PATCH",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
             Accept: "application/json",
           },

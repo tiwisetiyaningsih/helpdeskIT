@@ -166,13 +166,6 @@ export default function TicketCreate() {
 
   useEffect(() => {
     const getCurrentUser = async () => {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        router.replace("/signin");
-        return;
-      }
-
       try {
         setIsLoadingUser(true);
         setError("");
@@ -180,7 +173,6 @@ export default function TicketCreate() {
         const response = await apiFetch(`${API_URL}/auth/me`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
           cache: "no-store",
@@ -312,13 +304,6 @@ export default function TicketCreate() {
       return;
     }
 
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      router.replace("/signin");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
 
@@ -332,7 +317,6 @@ export default function TicketCreate() {
       const response = await apiFetch(`${API_URL}/tickets`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
         body: formData,

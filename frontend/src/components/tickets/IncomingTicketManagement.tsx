@@ -318,14 +318,6 @@ export default function IncomingTicketManagement() {
   const [formError, setFormError] = useState("");
 
   const loadData = useCallback(async (showLoading = false) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setError("Sesi login tidak ditemukan.");
-      setLoading(false);
-      return;
-    }
-
     try {
       if (showLoading) setLoading(true);
 
@@ -333,7 +325,6 @@ export default function IncomingTicketManagement() {
         apiFetch(`${API_URL}/tickets`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
           cache: "no-store",
@@ -341,7 +332,6 @@ export default function IncomingTicketManagement() {
         apiFetch(`${API_URL}/tickets/it-helpdesk-users`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
           cache: "no-store",
@@ -615,12 +605,6 @@ export default function IncomingTicketManagement() {
       selectedHandler.email ||
       `User ${selectedHandler.id}`;
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setFormError("Sesi login tidak ditemukan.");
-      return;
-    }
-
     try {
       setSaving(true);
       setFormError("");
@@ -630,7 +614,6 @@ export default function IncomingTicketManagement() {
         {
           method: "PATCH",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
             Accept: "application/json",
           },

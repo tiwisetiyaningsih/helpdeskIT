@@ -254,7 +254,7 @@ export const ticketService = {
         fileSize: evidence.fileSize,
         uploadedById: evidence.uploadedById,
         createdAt: evidence.createdAt,
-        fileUrl: `http://localhost:3001/tickets/evidences/${evidence.id}`,
+        fileUrl: `/tickets/evidences/${evidence.id}`,
       })),
     }));
   },
@@ -757,7 +757,7 @@ export const ticketService = {
         fileSize: evidence.fileSize,
         uploadedById: evidence.uploadedById,
         createdAt: evidence.createdAt,
-        fileUrl: `http://localhost:3001/tickets/evidences/${evidence.id}`,
+        fileUrl: `/tickets/evidences/${evidence.id}`,
       })),
     }));
   },

@@ -5,6 +5,9 @@ import EditProfileModal from "./EditProfileModal";
 import PencilIcon from "@/icons/pencil.svg";
 import { apiFetch } from "@/lib/apiFetch";
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
 type ProfileUser = {
   id: number;
   email: string;
@@ -35,22 +38,11 @@ export default function UserInfoCard() {
 
   useEffect(() => {
     async function getProfile() {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setError("Sesi login tidak ditemukan.");
-        setLoading(false);
-        return;
-      }
-
       try {
         setError("");
 
-        const response = await apiFetch("http://localhost:3001/auth/me", {
+        const response = await apiFetch(`${API_URL}/auth/me`, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         });
 
         const data = (await response.json()) as ProfileResponse;

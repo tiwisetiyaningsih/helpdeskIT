@@ -1,6 +1,3 @@
-
-
-
 "use client";
 
 
@@ -318,14 +315,6 @@ export default function Dashboard() {
   const [detailTicket, setDetailTicket] = useState<Ticket | null>(null);
 
   const loadDashboardData = useCallback(async (showLoading = false) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setError("Sesi login tidak ditemukan. Silakan login kembali.");
-      setLoading(false);
-      return;
-    }
-
     try {
       if (showLoading) setLoading(true);
       setError("");
@@ -334,7 +323,6 @@ export default function Dashboard() {
         apiFetch(`${API_URL}/auth/me`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
           cache: "no-store",
@@ -342,7 +330,6 @@ export default function Dashboard() {
         apiFetch(`${API_URL}/tickets/my`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
           cache: "no-store",
