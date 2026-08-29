@@ -2,9 +2,7 @@
 
 import { apiFetch } from "@/lib/apiFetch";
 import React, { useEffect, useState } from "react";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+import { API_URL } from "@/lib/config";
 
 type ProfileUser = {
   id?: number;

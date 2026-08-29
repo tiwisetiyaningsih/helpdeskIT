@@ -6,10 +6,10 @@
 
 ## Struktur Project
 ```
-help-desk-it/
+helpdeskIT/
 ├── backend/      # API (Elysia + Bun + Prisma)
 ├── frontend/     # Web app (Next.js)
-└── compose.yml   # Orkestrasi seluruh service (mysql, redis, minio, backend, frontend)
+└── compose.yml   # Orkestrasi seluruh service (mysql, minio, backend, frontend)
 ```
 
 ## Prasyarat
@@ -21,7 +21,7 @@ help-desk-it/
 
 ```bash
 git clone https://github.com/tiwisetiyaningsih/helpdeskIT.git
-cd help-desk-it
+cd helpdeskIT
 ```
 
 ### 2. Jalankan semua service
@@ -32,22 +32,13 @@ podman compose up --build
 
 Tunggu sampai semua container jalan. Yang akan aktif:
 
-| Service   | Port lokal | Keterangan                     |
-|-----------|-----------|---------------------------------|
-| frontend  | 3000      | Web app                         |
-| backend   | 3001      | API (di dalam container port 3000) |
-| mysql     | 3307      | Database                        |
-| redis     | 6380      | Cache                           |
-| minio     | 9100      | Object storage (API)            |
-| minio     | 9101      | MinIO Console (web UI)          |
+| Service   | Akses dari host        | Keterangan                                   |
+|-----------|-------------------------|-----------------------------------------------|
+| frontend  | `localhost:3000`        | Web app                                       |
+| backend   | `localhost:3001`        | API (di dalam container port 3000)            |
+| mysql     | tidak dipublikasikan    | Hanya bisa diakses dari dalam network compose |
+| minio     | tidak dipublikasikan    | Hanya bisa diakses dari dalam network compose |
 
-### 3. Jalankan migrasi database
-
-Buka terminal baru (biarkan `podman compose up` tetap jalan), lalu:
-
-```bash
-podman compose exec backend bunx prisma migrate deploy
-```
 
 ### 4. (Opsional) Isi data awal (seed)
 
@@ -61,7 +52,7 @@ podman compose exec backend bun run seed
 
 - Web app: [http://localhost:3000](http://localhost:3000)
 - API: [http://localhost:3001](http://localhost:3001)
-- MinIO Console: [http://localhost:9101](http://localhost:9101) (login sesuai `compose.yml`)
+
 
 ### Menghentikan aplikasi
 

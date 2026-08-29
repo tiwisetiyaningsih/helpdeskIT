@@ -118,7 +118,7 @@ export default function UserModal({
       }
 
       if (!isEdit && form.password.length < 6) {
-        throw new Error("Password minimal 6 karakter.");
+        throw new Error("Password minimal 12 karakter.");
       }
 
       if (
@@ -126,7 +126,7 @@ export default function UserModal({
         form.password &&
         form.password.length < 6
       ) {
-        throw new Error("Password minimal 6 karakter.");
+        throw new Error("Password minimal 12 karakter.");
       }
 
       const payload = {
@@ -342,7 +342,7 @@ export default function UserModal({
                   placeholder={
                     isEdit
                       ? "Kosongkan jika tidak ingin mengganti password"
-                      : "Minimal 6 karakter"
+                      : "Minimal 12 karakter"
                   }
                   onChange={(event) =>
                     setForm((current) => ({
@@ -409,7 +409,7 @@ export default function UserModal({
 
               {!isEdit && (
                 <p className="mt-2 text-xs text-gray-400">
-                  Gunakan minimal 6 karakter.
+                  Gunakan minimal 12 karakter.
                 </p>
               )}
             </div>

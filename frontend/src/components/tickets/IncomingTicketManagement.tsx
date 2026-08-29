@@ -4,8 +4,9 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { Ticket } from "@/services/ticket.service";
 import TicketDetailModal from "./TicketDetailModal";
 import { apiFetch } from "@/lib/apiFetch";
+import { API_URL } from "@/lib/config";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
 const REFRESH_INTERVAL = 15_000;
 
 type PriorityFilter = "ALL" | "1" | "2" | "3" | "4";

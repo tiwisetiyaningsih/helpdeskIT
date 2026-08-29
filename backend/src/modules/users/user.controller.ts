@@ -151,7 +151,7 @@ export const userController = {
 
         return {
           success: false,
-          message: "Password minimal 6 karakter.",
+          message: "Password minimal 12 karakter.",
         };
       }
 

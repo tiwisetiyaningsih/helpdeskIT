@@ -8,9 +8,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+import { API_URL } from "@/lib/config";
 
 interface RegisterResponse {
   success: boolean;
@@ -67,7 +65,7 @@ export default function SignUpForm() {
     }
 
     if (password.length < 6) {
-      setErrorMessage("Password minimal 6 karakter");
+      setErrorMessage("Password minimal 12 karakter");
       return;
     }
 
@@ -329,7 +327,7 @@ export default function SignUpForm() {
                   type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
-                  placeholder="Minimal 6 karakter"
+                  placeholder="Minimal 12 karakter"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   disabled={isLoading}

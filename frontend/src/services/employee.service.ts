@@ -1,9 +1,7 @@
 import { apiFetch } from "@/lib/apiFetch";
+import { API_URL } from "@/lib/config";
 
-const API =
-  process.env.NEXT_PUBLIC_API_URL
-    ? `${process.env.NEXT_PUBLIC_API_URL}/employees`
-    : "http://localhost:3001/employees";
+const API = `${API_URL}/employees`;
 
 export async function getEmployees() {
   const response = await apiFetch(API, {

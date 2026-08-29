@@ -10,10 +10,7 @@ import React, {
 import TicketDetail from "./TicketDetail";
 import type { Ticket } from "@/services/ticket.service";
 import { apiFetch } from "@/lib/apiFetch";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3001";
+import { API_URL } from "@/lib/config";
 
 const ITEMS_PER_PAGE = 10;
 

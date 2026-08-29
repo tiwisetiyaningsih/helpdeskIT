@@ -10,9 +10,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/apiFetch";
 import { setAccessToken } from "@/lib/apiFetch";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+import { API_URL } from "@/lib/config";
 
 type UserRole = "Admin" | "Employee" | "IT HelpDesk";
 

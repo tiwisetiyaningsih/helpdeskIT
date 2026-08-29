@@ -4,9 +4,7 @@ import React, { useEffect, useState } from "react";
 import EditProfileModal from "./EditProfileModal";
 import PencilIcon from "@/icons/pencil.svg";
 import { apiFetch } from "@/lib/apiFetch";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+import { API_URL } from "@/lib/config";
 
 type ProfileUser = {
   id: number;

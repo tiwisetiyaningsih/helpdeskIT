@@ -10,10 +10,7 @@ import type { ProfileUser } from "./UserProfile";
 import { apiFetch } from "@/lib/apiFetch";
 import SearchableSelect from "@/components/common/SearchableSelect";
 import { UNIT_KERJA_OPTIONS } from "@/components/employee/employee-options";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3001";
+import { API_URL } from "@/lib/config";
 
 type EditProfileModalProps = {
   isOpen: boolean;

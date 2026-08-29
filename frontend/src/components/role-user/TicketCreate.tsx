@@ -10,9 +10,8 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { API_URL } from "@/lib/config";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 const MINIMUM_COMPLAINT_LENGTH = 10;
 const MAXIMUM_COMPLAINT_LENGTH = 2000;

@@ -11,10 +11,8 @@ import type {
   TicketUser,
 } from "@/services/ticket.service";
 import { apiFetch } from "@/lib/apiFetch";
+import { API_URL } from "@/lib/config";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3001";
 
 const CATEGORY_OPTIONS = [
   "Jaringan",

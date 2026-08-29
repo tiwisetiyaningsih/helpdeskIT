@@ -1,8 +1,5 @@
 import { apiFetch } from "@/lib/apiFetch";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3001";
+import { API_URL } from "@/lib/config";
 
 export type EmployeeOption = {
   id: number;
