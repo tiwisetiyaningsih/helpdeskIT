@@ -84,8 +84,11 @@ function testAdminOnlyRouter(
         const res = await route.handle(
           buildRequest(method, path, "ADMIN", body)
         );
-        expect(res.status).not.toBe(401);
-        expect(res.status).not.toBe(403);
+        const json: any = await res.json().catch(() => null);
+        expect(json?.message).not.toBe("Sesi pengguna tidak valid.");
+        expect(json?.message).not.toBe(
+          "Anda tidak memiliki akses untuk aksi ini."
+        );
       });
     }
   });

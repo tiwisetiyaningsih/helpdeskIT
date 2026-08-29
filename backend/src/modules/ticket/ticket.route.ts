@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 
 import { authMiddleware } from "../../middleware/auth.middleware";
+import { createTicketRateLimit } from "../../middleware/rateLimit";
 import { ticketController } from "./ticket.controller";
 
 export const ticketRoute = new Elysia({
@@ -30,6 +31,7 @@ export const ticketRoute = new Elysia({
           })
         ),
       }),
+      beforeHandle: createTicketRateLimit,
     }
   )
 

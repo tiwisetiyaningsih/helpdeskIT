@@ -120,3 +120,39 @@ export const refreshRateLimit = createAuthRateLimiter("refresh", {
   max: 30,
   windowMs: 5 * 60 * 1000,
 });
+
+export function createUserRateLimiter(
+  label: string,
+  options: RateLimitOptions = {}
+) {
+  const windowMs = options.windowMs ?? 15 * 60 * 1000;
+  const max = options.max ?? 10;
+
+  return (context: any) => {
+    const { set, currentUser } = context;
+
+    const ip = getClientIp(context);
+    const key = currentUser?.id
+      ? `${label}:user:${currentUser.id}`
+      : `${label}:ip:${ip}`;
+
+    const result = hit(key, windowMs, max);
+
+    if (result.limited) {
+      set.status = 429;
+      set.headers["Retry-After"] = String(result.retryAfterSeconds);
+
+      return {
+        success: false,
+        message: `Terlalu banyak permintaan. Coba lagi dalam ${Math.ceil(
+          result.retryAfterSeconds / 60
+        )} menit.`,
+      };
+    }
+  };
+}
+
+export const createTicketRateLimit = createUserRateLimiter("create-ticket", {
+  max: 10,
+  windowMs: 15 * 60 * 1000,
+});
