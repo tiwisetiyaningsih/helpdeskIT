@@ -199,13 +199,24 @@ export const authController = {
     };
   },
 
-  async logout({ cookie }: any) {
+    async logout({ cookie }: any) {
     await authService.revokeRefreshTokenByRaw(cookie.refreshToken?.value);
     cookie.refreshToken?.remove();
 
     return {
       success: true,
       message: "Logout berhasil",
+    };
+  },
+
+  async logoutAllDevices({ cookie, currentUser }: any) {
+    await authService.logoutAllDevices(currentUser.id);
+    cookie.refreshToken?.remove();
+
+    return {
+      success: true,
+      message:
+        "Berhasil logout dari semua perangkat. Silakan login ulang.",
     };
   },
 };

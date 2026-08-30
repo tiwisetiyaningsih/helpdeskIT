@@ -39,6 +39,10 @@ export const authRoute = new Elysia({
     authController.updateProfile(context)
   )
 
-  .post("/logout", (context) =>
+    .post("/logout", (context) =>
     authController.logout(context)
+  )
+
+  .post("/logout-all", (context) =>
+    authController.logoutAllDevices(context)
   );

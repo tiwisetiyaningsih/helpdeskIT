@@ -130,6 +130,14 @@ export const authRepository = {
     });
   },
 
+  
+  async invalidateAllAccessTokens(userId: number) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { tokenValidAfter: new Date() },
+    });
+  },
+
   async updateProfile(
     userId: number,
     data: { email: string; nama: string; jobTitle: string | null; unitKerja: string }

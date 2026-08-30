@@ -247,7 +247,6 @@ export const authService = {
     };
   },
 
-  /** Dipanggil saat logout: cabut refresh token yang sedang aktif dipakai */
   async revokeRefreshTokenByRaw(rawToken: string | undefined) {
     if (!rawToken) return;
 
@@ -256,6 +255,11 @@ export const authService = {
     if (stored && !stored.revokedAt) {
       await authRepository.revokeRefreshToken(stored.id);
     }
+  },
+
+  async logoutAllDevices(userId: number) {
+    await authRepository.revokeAllUserRefreshTokens(userId);
+    await authRepository.invalidateAllAccessTokens(userId);
   },
 
   async updateProfile(

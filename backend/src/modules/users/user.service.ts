@@ -269,6 +269,7 @@ export const userService = {
     });
     if (hashedPassword || data.isActive === false) {
       await authRepository.revokeAllUserRefreshTokens(id);
+      await authRepository.invalidateAllAccessTokens(id);
     }
 
     return updatedUser;

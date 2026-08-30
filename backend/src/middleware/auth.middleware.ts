@@ -5,6 +5,7 @@ type JwtPayload = {
   id: number;
   email: string;
   role: string;
+  iat?: number;
 };
 
 export const authMiddleware = new Elysia()
@@ -51,6 +52,7 @@ export const authMiddleware = new Elysia()
         email: true,
         roleId: true,
         isActive: true,
+        tokenValidAfter: true,
         role: {
           select: {
             id: true,
@@ -76,6 +78,21 @@ export const authMiddleware = new Elysia()
         currentUser: null,
         authErrorStatus: 403,
         authErrorMessage: "Akun pengguna sedang tidak aktif",
+      };
+    }
+
+    const issuedAt =
+      typeof payload.iat === "number" ? payload.iat * 1000 : null;
+
+    if (
+      currentUser.tokenValidAfter &&
+      (issuedAt === null || issuedAt < currentUser.tokenValidAfter.getTime())
+    ) {
+      return {
+        user: null,
+        currentUser: null,
+        authErrorStatus: 401,
+        authErrorMessage: "Sesi telah dicabut, silakan login ulang",
       };
     }
 
